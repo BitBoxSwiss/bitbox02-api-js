@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>title</title>
+        <link rel="stylesheet" href="style.css">
+        <script type="module" src="demo.js"></script>
+    </head>
+    <body>
+        <p>
+            The BitBoxBridge must be running, and one BitBox02 plugged in.
+        </p>
+        <button id="demo" autocomplete="off">Run demo</button>
+        <div id="pairing" style="display:none;">
+            Verify pairing<br/>
+            <div id="pairingCode"></div>
+            <button id="pairingOK" disabled>OK</button>
+            <br/><br/>
+        </div>
+        <div id="initialized" style="display:none;">
+            <button id="ethPub" autocomplete="off">ETH address</button>
+            <button id="ethSign" autocomplete="off">ETH sign</button>
+            <button id="ethSignMsg" autocomplete="off">ETH sign message</button>
+            <button id="close" autocomplete="off">Close</button>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,25 @@
+{
+  "name": "bitbox02-api",
+  "version": "0.1.0",
+  "description": "BitBox02 JavaScript library",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/digitalbitbox/bitbox02-api-js.git"
+  },
+  "keywords": [
+    "bitbox",
+    "bitbox02",
+    "shiftcrypto",
+    "bitbox-api"
+  ],
+  "author": "Shift Cryptosecurity",
+  "license": "SEE LICENSE IN LICENSE",
+  "bugs": {
+    "url": "https://github.com/digitalbitbox/bitbox02-api-js/issues"
+  },
+  "homepage": "https://github.com/digitalbitbox/bitbox02-api-js#readme"
+}
