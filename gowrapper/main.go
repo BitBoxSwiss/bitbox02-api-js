@@ -17,6 +17,7 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"log"
 	"math/big"
@@ -99,9 +100,11 @@ func main() {
 				"AttestationCheckDone": firmware.EventAttestationCheckDone,
 			},
 			"messages": map[string]interface{}{
-				"ETHCoin":                  messages.ETHCoin_value,
-				"ETHPubRequest_OutputType": messages.ETHPubRequest_OutputType_value,
-				"BTCCoin":                  messages.BTCCoin_value,
+				"ETHCoin":                    messages.ETHCoin_value,
+				"ETHPubRequest_OutputType":   messages.ETHPubRequest_OutputType_value,
+				"BTCCoin":                    messages.BTCCoin_value,
+				"BTCScriptConfig_SimpleType": messages.BTCScriptConfig_SimpleType_value,
+				"BTCOutputType":              messages.BTCOutputType_value,
 			},
 			"New": newJSDevice,
 		},
@@ -184,6 +187,65 @@ func (device *jsDevice) AsyncChannelHashVerify(done func(*jsError), ok bool) {
 	go func() {
 		device.device.ChannelHashVerify(ok)
 		done(nil)
+	}()
+}
+
+func (device *jsDevice) AsyncBTCAddressSimple(
+	done func(string, *jsError),
+	coin messages.BTCCoin,
+	keypath []uint32,
+	simpleType messages.BTCScriptConfig_SimpleType,
+	display bool) {
+	go func() {
+		address, err := device.device.BTCAddress(
+			coin,
+			keypath,
+			firmware.NewBTCScriptConfigSimple(simpleType),
+			display)
+		done(address, toJSError(err))
+	}()
+}
+
+// ugly hack because I don't know how to internalize structs automatically.
+func convertViaJSON(in interface{}, out interface{}) error {
+	jsonBytes, err := json.Marshal(in)
+	if err != nil {
+		return err
+	}
+	return json.Unmarshal(jsonBytes, out)
+}
+
+func (device *jsDevice) AsyncBTCSignSimple(
+	done func([][]byte, *jsError),
+	coin messages.BTCCoin,
+	simpleType messages.BTCScriptConfig_SimpleType,
+	keypathAccount []uint32,
+	inputs []map[string]interface{}, // matches []*messages.BTCSignInputrequest
+	outputs []map[string]interface{}, // matches []*messages.BTCSignOutputrequest
+	version uint32,
+	locktime uint32,
+) {
+	go func() {
+		var theInputs []*messages.BTCSignInputRequest
+		if err := convertViaJSON(inputs, &theInputs); err != nil {
+			done(nil, toJSError(err))
+			return
+		}
+		var theOutputs []*messages.BTCSignOutputRequest
+		if err := convertViaJSON(outputs, &theOutputs); err != nil {
+			done(nil, toJSError(err))
+			return
+		}
+		signatures, err := device.device.BTCSign(
+			coin,
+			firmware.NewBTCScriptConfigSimple(simpleType),
+			keypathAccount,
+			theInputs,
+			theOutputs,
+			version,
+			locktime,
+		)
+		done(signatures, toJSError(err))
 	}()
 }
 

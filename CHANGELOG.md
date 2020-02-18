@@ -2,6 +2,7 @@
 
 - Add CHANGELOG
 - Update README
+- Add AsyncBTCAddressSimple, AsyncBTCSignSimple
 
 # 0.1.0
 

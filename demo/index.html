@@ -2,13 +2,14 @@
 <html lang="en">
     <head>
         <meta charset="utf-8">
-        <title>title</title>
+        <title>BitBox02 JS demo sandbox</title>
         <link rel="stylesheet" href="style.css">
         <script type="module" src="demo.js"></script>
     </head>
     <body>
         <p>
-            The BitBoxBridge must be running, and one BitBox02 plugged in.
+            The <a href="https://github.com/digitalbitbox/bitbox-bridge/releases/">BitBoxBridge</a> must
+            be running, and one BitBox02 plugged in.
         </p>
         <button id="demo" autocomplete="off">Run demo</button>
         <div id="pairing" style="display:none;">
@@ -18,6 +19,11 @@
             <br/><br/>
         </div>
         <div id="initialized" style="display:none;">
+            <strong>BTC</strong>
+            <button id="btcAddressSimple" autocomplete="off">BTC Address (single-sig)</button>
+            <button id="btcSignSimple" autocomplete="off">BTC Sign (single-sig)</button>
+            <br/>
+            <strong>ETH</strong>
             <button id="ethPub" autocomplete="off">ETH address</button>
             <button id="ethSign" autocomplete="off">ETH sign</button>
             <button id="ethSignMsg" autocomplete="off">ETH sign message</button>

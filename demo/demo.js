@@ -65,7 +65,75 @@ export async function demo() {
 
     document.getElementById("pairing").style.display = "none";
     initializedDiv.style.display = "block";
+
+    // ---- Demo buttons
+
     const HARDENED = 0x80000000;
+    document.getElementById("btcAddressSimple").addEventListener("click", async () => {
+        const pub = display => firmware.js.AsyncBTCAddressSimple(
+            firmwareAPI.messages.BTCCoin.BTC,
+            [49 + HARDENED, 0 + HARDENED, 0 + HARDENED, 0, 0],
+            firmwareAPI.messages.BTCScriptConfig_SimpleType.P2WPKH_P2SH,
+            display,
+        )
+        const addr = await pub(false);
+        pub(true);
+        alert(addr);
+    });
+
+    document.getElementById("btcSignSimple").addEventListener("click", async () => {
+        const bip44Account = 0 + HARDENED;
+        const version = 1;
+        const locktime = 0;
+        const inputs = [
+            {
+                "prevOutHash": new Uint8Array(32).fill(49), // arbitrary constant
+                "prevOutIndex": 1,
+                "prevOutValue": 1e8 * 0.60005,
+                "sequence": 0xFFFFFFFF,
+                "keypath": [84 + HARDENED, 0 + HARDENED, bip44Account, 0, 0],
+            },
+            {
+                "prevOutHash": new Uint8Array(32).fill(49), // arbitrary constant
+                "prevOutIndex": 1,
+                "prevOutValue": 1e8 * 0.60005,
+                "sequence": 0xFFFFFFFF,
+                "keypath": [84 + HARDENED, 0 + HARDENED, bip44Account, 0, 1],
+            }
+        ];
+        const outputs = [
+            {
+                "ours": true, // change
+                "keypath": [84 + HARDENED, 0 + HARDENED, bip44Account, 1, 0],
+                "value": 1e8 * 1,
+            },
+            {
+                "ours": false,
+                "type": firmwareAPI.messages.BTCOutputType.P2WSH,
+                "hash": new Uint8Array(32).fill(49), // arbitrary constant
+                "value": 1e8 * 0.2,
+            },
+        ];
+        try {
+            const signatures = await firmware.js.AsyncBTCSignSimple(
+                firmwareAPI.messages.BTCCoin.BTC,
+                firmwareAPI.messages.BTCScriptConfig_SimpleType.P2WPKH,
+                [84 + HARDENED, 0 + HARDENED, bip44Account],
+                inputs,
+                outputs,
+                version,
+                locktime,
+            );
+            console.log("Signatures: ", signatures);
+        } catch(err) {
+            if (firmwareAPI.IsErrorAbort(err)) {
+                alert("aborted by user");
+            } else {
+                alert(err.Message);
+            }
+        }
+    });
+
     document.getElementById("ethPub").addEventListener("click", async () => {
         const pub = display => firmware.js.AsyncETHPub(
             firmwareAPI.messages.ETHCoin.ETH,
@@ -78,6 +146,7 @@ export async function demo() {
         pub(true);
         alert(addr);
     });
+
     ethSign.addEventListener("click", async () => {
         try {
             const sig = await firmware.js.AsyncETHSign(
@@ -99,6 +168,7 @@ export async function demo() {
             }
         }
     });
+
     ethSignMsg.addEventListener("click", async () => {
         try {
             const sig = await firmware.js.AsyncETHSignMessage(
