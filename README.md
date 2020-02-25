@@ -47,9 +47,16 @@ For more detailed example see the [Sample integration](https://github.com/digita
 ### Methods and functions
 
 #### ethGetRootPubKey: Get Ethereum Root Pub Key
-Gets you the Ethereum xpub at the default `m/44'/60'/0'/0` keypath
+Get eth xpub for a given coin and derivation path
+
 ```javascript
-const rootPub = await BitBox02.ethGetRootPubKey();
+/**
+ * @param keypath account keypath in string format
+ * Currently only two keypaths are supported:
+ * - `m/44'/60'/0'/0` for mainnet and
+ * - `m/44'/1'/0'/0`  for Rinkeby and Ropsten testnets
+ */
+const rootPub = await BitBox02.ethGetRootPubKey(keypath: string);
 ```
 
 #### ethSignTransaction: Sign Ethereum transaction
@@ -59,7 +66,7 @@ To sign Etehreum transactions, we recommend using the `Transaction` type provide
 /** @param sigData should include the following where `tx` is the `Transaction` from `ethereumjs`:
   *
   * const sigData = {
-  *     account: id,      // id: number, account number in the ETH keypath e.g. m/44'/60'/0'/0/<id>
+  *     path: keypath     // full Ethereum account keypath string e.g. m/44'/60'/0'/0/0
   *     recipient: tx.to, // Buffer(Uint8Array(20))
   *     tx: {
   *       value           // hex
@@ -130,12 +137,12 @@ class BitBox02Wallet {
     this.pairingConfirmed = false;
   }
 
-  async init() {
+  async connect() {
     const devicePath = await getDevicePath();
     this.BitBox02 = new BitBox02API(devicePath);
   }
 
-  async connect() {
+  async init(keypath) {
     await this.BitBox02.connect(
 
       /** @param showPairingCb
@@ -191,8 +198,8 @@ class BitBox02Wallet {
       errorHandler('Attestation failed');
     }
 
-    const rootPub = await this.BitBox02.ethGetRootPubKey();
-    // Derive accounts from xpub ...
+    const rootPub = await this.BitBox02.ethGetRootPubKey(keypath);
+    // Derive accounts from xpub ..., e.g. `this.hdKey = HDKey.fromExtendedKey(rootPub);`
 
   }
 
