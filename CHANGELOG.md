@@ -1,3 +1,7 @@
+# 0.3.0
+- Update from Go API: https://github.com/digitalbitbox/bitbox02-api-go/commit/7817ceb1fccc7276f17a6a468221258cbd4d5bac
+    - Includes support for firmware 6.1.0 and makes it the lowest supported version
+
 # 0.2.0
 
 - Add CHANGELOG
