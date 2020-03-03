@@ -1,6 +1,6 @@
 import './bitbox02-api-go.js';
 
-import { getKeypathFromString, getCoinFromKeypath } from './eth-utils';
+import { getKeypathFromString, getCoinFromKeypath } from './eth-utils.js';
 
 export const api = bitbox02;
 export const firmwareAPI = api.firmware;
@@ -188,9 +188,9 @@ export class BitBox02API {
             const chainId = sigData.chainId;
             const vOffset = chainId * 2 + 8;
             const result = {
-                r: new Buffer(sig.slice(0, 0 + 32)),
-                s: new Buffer(sig.slice(0 + 32, 0 + 32 + 32)),
-                v: new Buffer([parseInt(sig.slice(64), 16) + 27 + vOffset])
+                r: sig.slice(0, 0 + 32),
+                s: sig.slice(0 + 32, 0 + 32 + 32),
+                v: [parseInt(sig.slice(64), 16) + 27 + vOffset]
             };
             return result;
         } catch (err) {
@@ -204,16 +204,17 @@ export class BitBox02API {
 
     async ethSignMessage(msgData) {
         try {
+          const keypath = getKeypathFromString(msgData.keypath);
           const sig = await this.fw.js.AsyncETHSignMessage(
-            firmwareAPI.messages.ETHCoin.ETH,
-            [44 + HARDENED, 60 + HARDENED, 0 + HARDENED, 0, msgData.account],
+            getCoinFromKeypath(keypath),
+            keypath,
             msgData.message
           );
 
           const result = {
-              r: new Buffer(sig.slice(0, 0 + 32)),
-              s: new Buffer(sig.slice(0 + 32, 0 + 32 + 32)),
-              v: new Buffer([parseInt(sig.slice(64), 16) + 27])
+              r: sig.slice(0, 0 + 32),
+              s: sig.slice(0 + 32, 0 + 32 + 32),
+              v: [parseInt(sig.slice(64), 16) + 27]
           };
           return result;
         } catch(err) {

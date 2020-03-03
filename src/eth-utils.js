@@ -1,6 +1,6 @@
-import { firmwareAPI, HARDENED } from './bitbox02';
+import { firmwareAPI, HARDENED } from './bitbox02.js';
 
-const getCoinFromChainId = chainId => {
+export const getCoinFromChainId = chainId => {
     switch(chainId) {
         case 1:
             return firmwareAPI.messages.ETHCoin.ETH;
