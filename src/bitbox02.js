@@ -1,6 +1,6 @@
 import './bitbox02-api-go.js';
 
-import { getKeypathFromString, getCoinFromKeypath } from './eth-utils.js';
+import { getKeypathFromString, getCoinFromKeypath, getCoinFromChainId } from './eth-utils.js';
 
 export const api = bitbox02;
 export const firmwareAPI = api.firmware;
@@ -186,7 +186,13 @@ export class BitBox02API {
 
     /**
      * Signs an ethereum transaction on device
-     * @param sanitizedData Object returned by `sanitizeEthTransactionData`
+     * @param signingData Object;
+     * signingData = {
+     *     keypath, // string, e.g. m/44'/60'/0'/0/0
+     *     chainId, // number, currently 1, 3 or 4 for Mainnet, Ropsten and Rinkeby respectively
+     *     tx       // Object, either as provided by the `Transaction` type from `ethereumjs` library
+     *              // or including `nonce`, `gasPrice`, `gasLimit`, `to`, `value`, and `data` as byte arrays
+     * }
      * @returns Object; result with the signature bytes r, s, v
      * result = {
      *     r: Uint8Array(32)
@@ -194,20 +200,19 @@ export class BitBox02API {
      *     v: Uint8Array(1)
      * }
      */
-    async ethSignTransaction(sigData) {
+    async ethSignTransaction(signingData) {
         try {
-            const sig = await this.firmware().js.AsyncETHSign(
-                sigData.coin,
-                sigData.keypath,
-                sigData.nonce,
-                sigData.gasPrice,
-                sigData.gasLimit,
-                sigData.recipient,
-                sigData.value,
-                sigData.data
+            const sig = await this.fw.js.AsyncETHSign(
+                getCoinFromChainId(signingData.chainId),
+                getKeypathFromString(signingData.keypath),
+                signingData.tx.nonce,
+                signingData.tx.gasPrice,
+                signingData.tx.gasLimit,
+                signingData.tx.to,
+                signingData.tx.value,
+                signingData.tx.data
             );
-            const chainId = sigData.chainId;
-            const vOffset = chainId * 2 + 8;
+            const vOffset = signingData.chainId * 2 + 8;
             const result = {
                 r: sig.slice(0, 0 + 32),
                 s: sig.slice(0 + 32, 0 + 32 + 32),

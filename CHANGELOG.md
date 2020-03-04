@@ -3,6 +3,11 @@
     - Includes support for firmware 6.1.0 and makes it the lowest supported version
 - Update sandbox demo to use a class and abstracted ethereum api methods
 - Return arrays instead of Buffers in ethereum signature results and let the caller handle conversion as they require
+- Update README and docstrings
+- Access `firmwareAPI` more safely by checking if connection is valid first
+- Make `AsyncETHSign` in the go wrapper take []byte for all arguments which allows us to completely remove `sanitizeEthTransactionData`
+    - Update README and `demo.js` accordingly to reflect these changes
+    - TODO: Mirror these changes in ETHSign in the go client and the BitBoxApp to handle Eth TXs the same everywhere
 
 # 0.2.0
 

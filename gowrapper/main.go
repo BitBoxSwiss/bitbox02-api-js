@@ -268,23 +268,21 @@ func (device *jsDevice) AsyncETHSign(
 	done func([]byte, *jsError),
 	coin messages.ETHCoin,
 	keypath []uint32,
-	nonce uint64,
-	gasPrice string,
-	gasLimit uint64,
+	nonce []byte,
+	gasPrice []byte,
+	gasLimit []byte,
 	recipient []byte,
-	value string,
+	value []byte,
 	data []byte) {
 	go func() {
-		gasPriceBigInt, ok := new(big.Int).SetString(gasPrice, 10)
-		if !ok {
-			done(nil, toJSError(errors.New("invalid decimal string")))
-			return
-		}
-		valueBigInt, ok := new(big.Int).SetString(value, 10)
-		if !ok {
-			done(nil, toJSError(errors.New("invalid decimal string")))
-			return
-		}
+
+		// TODO: Get rid of these intermediate conversions and pass bytes to firmware directly through ETHSign
+		gasPriceBigInt := new(big.Int).SetBytes(gasPrice)
+		valueBigInt := new(big.Int).SetBytes(value)
+
+		nonceInt := new(big.Int).SetBytes(nonce).Uint64()
+		gasLimitInt := new(big.Int).SetBytes(gasLimit).Uint64()
+
 		if len(recipient) != 20 {
 			done(nil, toJSError(errors.New("invalid recipient length")))
 			return
@@ -292,7 +290,7 @@ func (device *jsDevice) AsyncETHSign(
 		recipient20 := [20]byte{}
 		copy(recipient20[:], recipient)
 		sig, err := device.device.ETHSign(
-			coin, keypath, nonce, gasPriceBigInt, gasLimit, recipient20, valueBigInt, data)
+			coin, keypath, nonceInt, gasPriceBigInt, gasLimitInt, recipient20, valueBigInt, data)
 		done(sig, toJSError(err))
 	}()
 }
