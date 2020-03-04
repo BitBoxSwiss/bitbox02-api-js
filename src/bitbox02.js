@@ -7,7 +7,7 @@ export const firmwareAPI = api.firmware;
 export const HARDENED = 0x80000000;
 
 function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 // Will try for 1 second to find a device through the bridge.
@@ -54,11 +54,14 @@ export class BitBox02API {
         this.opened = false;
     }
 
-    // @param showPairingCb Callback that is used to show pairing code. Must not block.
-    // @param userVerify Promise that should resolve once the user wants to continue.
-    // @param handleAttastionCb Callback that should print "attestation failed". Must not block.
-    // @param onCloseCb Callback thats called when the websocket connection is closed.
-    // @return Promise that will resolve once the pairing is complete.
+    /**
+     * @param showPairingCb Callback that is used to show pairing code. Must not block.
+     * @param userVerify Promise that should resolve once the user wants to continue.
+     * @param handleAttastionCb Callback that should handle the bool attestation result. Must not block.
+     * @param onCloseCb Callback that's called when the websocket connection is closed.
+     * @param setStatusCb Callback that lets the API set the status received from the device.
+     * @return Promise that will resolve once the pairing is complete.
+     */
     connect (showPairingCb, userVerify, handleAttestationCb, onCloseCb, setStatusCb) {
         const self = this;
         self.opened = true;
@@ -142,7 +145,13 @@ export class BitBox02API {
         });
     }
 
-    // @return the eth xpub for a given coin and derivation keypath
+    /**
+     * @param keypath account keypath in string format
+     * Currently only two keypaths are supported:
+     * - `m/44'/60'/0'/0` for mainnet and
+     * - `m/44'/1'/0'/0`  for Rinkeby and Ropsten testnets
+     * @returns string; ethereum extended public key
+     */
     async ethGetRootPubKey(keypath) {
         const keypathArray = getKeypathFromString(keypath);
         const coin = getCoinFromKeypath(keypathArray);
@@ -156,7 +165,11 @@ export class BitBox02API {
         return xpub
     };
 
-    // Displays the address of the provided ethereum account on device screen
+    /**
+     * @param keypath string, e.g. m/44'/60'/0'/0/0 for the first mainnet account
+     * Displays the address of the provided ethereum account on device screen
+     * Only displays address on device, does not return. For verification, derive address from xpub
+     */
     async ethDisplayAddress(keypath) {
         const keypathArray = getKeypathFromString(keypath);
         // FIXME: see def of `getCoinFromPath()`, since we use the same keypath for Ropsten and Rinkeby,
@@ -171,8 +184,16 @@ export class BitBox02API {
           );
     };
 
-    // Signs an ethereum transaction on device
-    // @return the signature from the device as bytes
+    /**
+     * Signs an ethereum transaction on device
+     * @param sanitizedData Object returned by `sanitizeEthTransactionData`
+     * @returns Object; result with the signature bytes r, s, v
+     * result = {
+     *     r: Uint8Array(32)
+     *     s: Uint8Array(32)
+     *     v: Uint8Array(1)
+     * }
+     */
     async ethSignTransaction(sigData) {
         try {
             const sig = await this.fw.js.AsyncETHSign(
@@ -202,19 +223,33 @@ export class BitBox02API {
         }
     };
 
+    /** @param msgData is an object including the keypath and the message as bytes:
+     *
+     * const msgData = {
+     *     keypath    // string, e.g. m/44'/60'/0'/0/0 for the first mainnet account
+     *     message    // Buffer/Uint8Array
+     * }
+     *
+     * @returns Object; result with the signature bytes r, s, v
+     * result = {
+     *     r: Uint8Array(32)
+     *     s: Uint8Array(32)
+     *     v: Uint8Array(1)
+     * }
+     */
     async ethSignMessage(msgData) {
         try {
-          const keypath = getKeypathFromString(msgData.keypath);
-          const sig = await this.fw.js.AsyncETHSignMessage(
-            getCoinFromKeypath(keypath),
-            keypath,
-            msgData.message
+            const keypath = getKeypathFromString(msgData.keypath);
+            const sig = await this.fw.js.AsyncETHSignMessage(
+                getCoinFromKeypath(keypath),
+                keypath,
+                msgData.message
           );
 
-          const result = {
-              r: sig.slice(0, 0 + 32),
-              s: sig.slice(0 + 32, 0 + 32 + 32),
-              v: [parseInt(sig.slice(64), 16) + 27]
+            const result = {
+                r: sig.slice(0, 0 + 32),
+                s: sig.slice(0 + 32, 0 + 32 + 32),
+                v: [parseInt(sig.slice(64), 16) + 27]
           };
           return result;
         } catch(err) {
@@ -226,12 +261,16 @@ export class BitBox02API {
         }
     }
 
-    // @return True if the connection has been opened and successfully established.
+    /**
+     * @returns True if the connection has been opened and successfully established.
+     */
     connectionValid() {
         return this.opened && this.socket.readyState == WebSocket.OPEN;
     }
 
-    // @return False if connection wasn't opened
+    /**
+     * @returns False if connection wasn't opened
+     */
     close() {
         if (!this.connectionValid()) {
             return false;
@@ -240,11 +279,13 @@ export class BitBox02API {
         return true;
     }
 
-    // Use the return value of this function to communicate with device
-    // @return Undefined if connection wasn't opened
+    /**
+     * Use the return value of this function to communicate with device
+     * @return Undefined if connection wasn't opened
+     */
     firmware() {
         if (!this.connectionValid()) {
-            return undefined;
+            throw new Error('Device or websocket not connected')
         }
         return this.fw;
     }
