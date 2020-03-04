@@ -57,7 +57,7 @@ class BitBox02 {
             reset();
             return;
         }
-        switch (this.BitBox02API.fw.Product()) {
+        switch (this.BitBox02API.firmware().Product()) {
             case api.common.Product.BitBox02Multi:
                 console.log("This is a BitBox02 Multi");
                 break;

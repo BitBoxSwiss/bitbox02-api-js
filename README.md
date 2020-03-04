@@ -148,8 +148,8 @@ To use with Ethereum, the user needs a BB02 Multi and not the Bitcoin Only editi
 ```javascript
 import { api } from 'bitbox02-api';
 
-BitBox02.fw.Product() === api.common.Product.BitBox02Multi
-BitBox02.fw.Product() === api.common.Product.BitBox02BTCOnly
+BitBox02.firmware().Product() === api.common.Product.BitBox02Multi
+BitBox02.firmware().Product() === api.common.Product.BitBox02BTCOnly
 ```
 
 ## Sample integration
@@ -227,7 +227,7 @@ class BitBox02 {
       return;
     }
 
-    switch (this.BitBox02API.fw.Product()) {
+    switch (this.BitBox02API.firmware().Product()) {
         case api.common.Product.BitBox02Multi:
             console.log("This is a BitBox02 Multi");
             break;

@@ -81,51 +81,51 @@ export class BitBox02API {
                     self.fw = firmwareAPI.New(onWrite);
 
                     // Turn all Async* methods into promises.
-                    for (const key in self.fw.js) {
+                    for (const key in self.firmware().js) {
                         if (key.startsWith("Async")) {
-                            self.fw.js[key] = promisify(self.fw.js[key]);
+                            self.firmware().js[key] = promisify(self.firmware().js[key]);
                         }
                     }
 
-                    self.fw.SetOnEvent(ev => {
-                        if (ev === firmwareAPI.Event.StatusChanged && self.fw) {
-                            setStatusCb(self.fw.Status());
+                    self.firmware().SetOnEvent(ev => {
+                        if (ev === firmwareAPI.Event.StatusChanged && self.firmware()) {
+                            setStatusCb(self.firmware().Status());
                         }
-                        if (ev === firmwareAPI.Event.StatusChanged && self.fw.Status() === firmwareAPI.Status.Unpaired) {
-                            const [channelHash] = self.fw.ChannelHash();
+                        if (ev === firmwareAPI.Event.StatusChanged && self.firmware().Status() === firmwareAPI.Status.Unpaired) {
+                            const [channelHash] = self.firmware().ChannelHash();
                             showPairingCb(channelHash);
                         }
                         if (ev === firmwareAPI.Event.AttestationCheckDone) {
-                            handleAttestationCb(self.fw.Attestation());
+                            handleAttestationCb(self.firmware().Attestation());
                         }
-                        if (ev === firmwareAPI.Event.StatusChanged && self.fw.Status() === firmwareAPI.Status.RequireFirmwareUpgrade) {
+                        if (ev === firmwareAPI.Event.StatusChanged && self.firmware().Status() === firmwareAPI.Status.RequireFirmwareUpgrade) {
                             self.socket.close();
                             reject('Firmware upgrade required');
                         }
-                        if (ev === firmwareAPI.Event.StatusChanged && self.fw.Status() === firmwareAPI.Status.RequireAppUpgrade) {
+                        if (ev === firmwareAPI.Event.StatusChanged && self.firmware().Status() === firmwareAPI.Status.RequireAppUpgrade) {
                             self.socket.close();
                             reject('Unsupported firmware');
                         }
-                        if (ev === firmwareAPI.Event.StatusChanged && self.fw.Status() === firmwareAPI.Status.Uninitialized) {
+                        if (ev === firmwareAPI.Event.StatusChanged && self.firmware().Status() === firmwareAPI.Status.Uninitialized) {
                             self.socket.close();
                             reject('Uninitialized');
                         }
                     });
 
-                    await self.fw.js.AsyncInit();
-                    switch(self.fw.Status()) {
+                    await self.firmware().js.AsyncInit();
+                    switch(self.firmware().Status()) {
                         case firmwareAPI.Status.PairingFailed:
                             self.socket.close();
                             throw new Error("Pairing rejected");
                         case firmwareAPI.Status.Unpaired:
                             await userVerify()
-                            await self.fw.js.AsyncChannelHashVerify(true);
+                            await self.firmware().js.AsyncChannelHashVerify(true);
                             break;
                         case firmwareAPI.Status.Initialized:
                             // Pairing skipped.
                             break;
                         default:
-                            throw new Error("Unexpected status: " + self.fw.Status() + "," + firmwareAPI.Status.Unpaired);
+                            throw new Error("Unexpected status: " + self.firmware().Status() + "," + firmwareAPI.Status.Unpaired);
                     }
 
                     resolve();
@@ -137,7 +137,7 @@ export class BitBox02API {
                 reject("Your BitBox02 is busy");
             }
             self.socket.onmessage = function(event) {
-                self.fw.js.OnRead(new Uint8Array(event.data));
+                self.firmware().js.OnRead(new Uint8Array(event.data));
             }
             self.socket.onclose = function(event) {
                 onCloseCb();
@@ -155,7 +155,7 @@ export class BitBox02API {
     async ethGetRootPubKey(keypath) {
         const keypathArray = getKeypathFromString(keypath);
         const coin = getCoinFromKeypath(keypathArray);
-        const xpub = await this.fw.js.AsyncETHPub(
+        const xpub = await this.firmware().js.AsyncETHPub(
             coin,
             keypathArray,
             firmwareAPI.messages.ETHPubRequest_OutputType.XPUB,
@@ -175,7 +175,7 @@ export class BitBox02API {
         // FIXME: see def of `getCoinFromPath()`, since we use the same keypath for Ropsten and Rinkeby,
         // the title for Rinkeby addresses will show 'Ropsten' instead
         const coin = getCoinFromKeypath(keypathArray);
-        this.fw.js.AsyncETHPub(
+        this.firmware().js.AsyncETHPub(
             coin,
             keypathArray,
             firmwareAPI.messages.ETHPubRequest_OutputType.ADDRESS,
@@ -196,7 +196,7 @@ export class BitBox02API {
      */
     async ethSignTransaction(sigData) {
         try {
-            const sig = await this.fw.js.AsyncETHSign(
+            const sig = await this.firmware().js.AsyncETHSign(
                 sigData.coin,
                 sigData.keypath,
                 sigData.nonce,
@@ -240,7 +240,7 @@ export class BitBox02API {
     async ethSignMessage(msgData) {
         try {
             const keypath = getKeypathFromString(msgData.keypath);
-            const sig = await this.fw.js.AsyncETHSignMessage(
+            const sig = await this.firmware().js.AsyncETHSignMessage(
                 getCoinFromKeypath(keypath),
                 keypath,
                 msgData.message
