@@ -72,48 +72,28 @@ const rootPub = await BitBox02.ethGetRootPubKey(keypath: string);
 ```
 
 #### ethSignTransaction: Sign Ethereum transaction
-To sign Etehreum transactions, we recommend using the `Transaction` type provided by the `ethereumjs` library https://github.com/ethereumjs/ethereumjs-tx/blob/master/src/transaction.ts and passing this transaction data through our `sanitizeEthTransactionData(sigData)` function to prepare the tx for the API.
-For calling the method directly without sanitizig the data, please see the example in `demo.js`:
-https://github.com/digitalbitbox/bitbox02-api-js/blob/master/demo/demo.js#L104
-
-```javascript
-/** @param sigData should include the following where `tx` is the `Transaction` from `ethereumjs`:
-  *
-  * const sigData = {
-  *     path: keypath     // full Ethereum account keypath string e.g. m/44'/60'/0'/0/0
-  *     recipient: tx.to, // Buffer(Uint8Array(20))
-  *     tx: {
-  *       value           // hex
-  *       data            // hex
-  *       chainId         // number
-  *       nonce           // hex
-  *       gasLimit        // hex
-  *       gasPrice        // hex
-  *      },
-  *     data: tx.data // Uint8Array/Buffer
-  *   }
-  *
-  * @returns Object; sanitized data ready to be passed to `ethSignTransaction`
-  */
-function sanitizeEthTransactionData(sigData)
-```
+To sign Ethereum transactions, we recommend using the `Transaction` type provided by the `ethereumjs` library https://github.com/ethereumjs/ethereumjs-tx/blob/master/src/transaction.ts.
 
 Then to send the data to the device and get the signature bytes:
 ```javascript
-import { sanitizeEthTransactionData } from 'bitbox02-api';
-
-const sanitizedData = sanitizeEthTransactionData(sigData);
 
 /**
- * @param sanitizedData Object returned by `sanitizeEthTransactionData`
+ * Signs an ethereum transaction on device
+ * @param signingData Object;
+ * signingData = {
+ *     keypath, // string, e.g. m/44'/60'/0'/0/0
+ *     chainId, // number, currently 1, 3 or 4 for Mainnet, Ropsten and Rinkeby respectively
+ *     tx       // Object, either as provided by the `Transaction` type from `ethereumjs` library
+ *              // or including `nonce`, `gasPrice`, `gasLimit`, `to`, `value`, and `data` as byte arrays
+ * }
  * @returns Object; result with the signature bytes r, s, v
  * result = {
- *   r: Uint8Array(32)
- *   s: Uint8Array(32)
- *   v: Uint8Array(1)
+ *     r: Uint8Array(32)
+ *     s: Uint8Array(32)
+ *     v: Uint8Array(1)
  * }
  */
-const result = await BitBox02.ethSignTransaction(sanitizedData);
+const result = await BitBox02.ethSignTransaction(signingData);
 ```
 
 #### ethSignMessage: Sign Ethereum messages
@@ -174,9 +154,9 @@ class BitBox02 {
   async init(keypath) {
     try {
       const devicePath = await getDevicePath();
-      this.BitBox02API = new BitBox02API(devicePath);
+      this.bitbox02API = new BitBox02API(devicePath);
 
-      await this.BitBox02API.connect(
+      await this.bitbox02API.connect(
 
         /** @param showPairingCb
          *  Store the pairing code on the class instance. Show this to the user to compare with code
@@ -227,7 +207,7 @@ class BitBox02 {
       return;
     }
 
-    switch (this.BitBox02API.firmware().Product()) {
+    switch (this.bitbox02API.firmware().Product()) {
         case api.common.Product.BitBox02Multi:
             console.log("This is a BitBox02 Multi");
             break;

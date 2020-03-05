@@ -1,5 +1,4 @@
 import { api, getDevicePath, BitBox02API } from './bitbox02.js'
-import { getCoinFromChainId, getKeypathFromString } from './eth-utils.js'
 
 const firmwareAPI = api.firmware;
 const HARDENED = 0x80000000;
@@ -24,14 +23,14 @@ class BitBox02 {
         document.getElementById("demo").disabled = true;
         try {
             const devicePath = await getDevicePath();
-            this.BitBox02API = new BitBox02API(devicePath);
+            this.bitbox02API = new BitBox02API(devicePath);
 
             document.getElementById("close").addEventListener("click", () => {
-                this.BitBox02API.close();
+                this.bitbox02API.close();
                 reset();
               });
 
-            await this.BitBox02API.connect(
+            await this.bitbox02API.connect(
                 pairingCode => {
                     document.getElementById("pairing").style.display = "block";
                     document.getElementById("pairingCode").innerHTML = pairingCode.replace("\n", "<br/>");
@@ -57,7 +56,7 @@ class BitBox02 {
             reset();
             return;
         }
-        switch (this.BitBox02API.firmware().Product()) {
+        switch (this.bitbox02API.firmware().Product()) {
             case api.common.Product.BitBox02Multi:
                 console.log("This is a BitBox02 Multi");
                 break;
@@ -78,8 +77,8 @@ const runDemo = async () => {
     device  = new BitBox02(reset)
     await device.init();
     // TODO: (@benma) `firmware` is no longer needed after refactoring BTC methods to work like eth with
-    // `device.BitBox02API` and adding them to bitbox02.js
-    firmware = device.BitBox02API.firmware()
+    // `device.bitbox02API` and adding them to bitbox02.js
+    firmware = device.bitbox02API.firmware()
 }
 
 // ---- Demo buttons
@@ -89,30 +88,32 @@ document.getElementById("demo").addEventListener("click", runDemo);
 
 // Get ethereum xpub for given keypath
 ethPub.addEventListener("click", async () => {
-    const ethPub = await device.BitBox02API.ethGetRootPubKey("m/44'/60'/0'/0");
+    const ethPub = await device.bitbox02API.ethGetRootPubKey("m/44'/60'/0'/0");
     alert(ethPub);
 });
 
 // Get ethereum address for given keypath
 // Only displays address on device, does not return. For verification, derive address from xpub
 ethAddr.addEventListener("click", async () => {
-    await device.BitBox02API.ethDisplayAddress("m/44'/60'/0'/0/0");
+    await device.bitbox02API.ethDisplayAddress("m/44'/60'/0'/0/0");
 });
 
 // Sign ethereum transaction
 ethSign.addEventListener("click", async () => {
-    const tx = {
-        coin: getCoinFromChainId(1), // mainnet tx
-        keypath: getKeypathFromString("m/44'/60'/0'/0/0"), // mainnet tx needs a mainnet keypath
-        nonce: 0,
-        gasPrice: "6000000000",
-        gasLimit: 21000,
-        recipient: new Uint8Array([4, 242, 100, 207, 52, 68, 3, 19, 180, 160, 25, 42, 53, 40, 20, 251, 233, 39, 184, 133]),
-        value: "530564000000000000",
-        data: new Uint8Array([])
+    const signingData = {
+        keypath: "m/44'/60'/0'/0/0", // mainnet tx needs a mainnet keypath
+        chainId: 1,                  // mainnet tx
+        tx: {
+            nonce: new Uint8Array([0]),
+            gasPrice: new Uint8Array([76, 153, 237, 154, 0]),
+            gasLimit: new Uint8Array([82, 8]),
+            to: new Uint8Array([4, 242, 100, 207, 52, 68, 3, 19, 180, 160, 25, 42, 53, 40, 20, 251, 233, 39, 184, 133]),
+            value: new Uint8Array([6, 240, 91, 89, 211, 178, 0, 0]),
+            data: new Uint8Array([])
+        }
     }
     try {
-        const sig = await device.BitBox02API.ethSignTransaction(tx);
+        const sig = await device.bitbox02API.ethSignTransaction(signingData);
         console.log(sig);
     } catch(e) {
         alert(e);
@@ -122,7 +123,7 @@ ethSign.addEventListener("click", async () => {
 // Sign "hello world" ethereum message
 ethSignMsg.addEventListener("click", async () => {
     try {
-        const sig = await device.BitBox02API.ethSignMessage({
+        const sig = await device.bitbox02API.ethSignMessage({
                 keypath: "m/44'/60'/0'/0/0",
                 // "hello world"
                 message: new Uint8Array([104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100])
@@ -134,7 +135,7 @@ ethSignMsg.addEventListener("click", async () => {
     }
 });
 
-// TODO: (@benma) refactor to use `device.BitBox02API` instead
+// TODO: (@benma) refactor to use `device.bitbox02API` instead
 document.getElementById("btcAddressSimple").addEventListener("click", async () => {
     const pub = display => firmware.js.AsyncBTCAddressSimple(
         firmwareAPI.messages.BTCCoin.BTC,
