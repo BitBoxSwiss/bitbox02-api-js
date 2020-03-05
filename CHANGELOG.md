@@ -1,6 +1,8 @@
 # 0.3.0
 - Update from Go API: https://github.com/digitalbitbox/bitbox02-api-go/commit/7817ceb1fccc7276f17a6a468221258cbd4d5bac
     - Includes support for firmware 6.1.0 and makes it the lowest supported version
+- Update sandbox demo to use a class and abstracted ethereum api methods
+- Return arrays instead of Buffers in ethereum signature results and let the caller handle conversion as they require
 
 # 0.2.0
 
