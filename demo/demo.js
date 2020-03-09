@@ -41,9 +41,7 @@ class BitBox02 {
                 attestationResult => {
                     alert("Attestation check: " + attestationResult);
                 },
-                () => {
-                    reset();
-                },
+                this.logout,
                 status => {
                     console.log(status);
                 }
