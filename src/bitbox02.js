@@ -3,8 +3,9 @@ import './bitbox02-api-go.js';
 import { getKeypathFromString, getCoinFromKeypath, getCoinFromChainId } from './eth-utils.js';
 
 export const api = bitbox02;
-export const firmwareAPI = api.firmware;
 export const HARDENED = 0x80000000;
+
+export const firmwareAPI = api.firmware;
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
@@ -143,6 +144,35 @@ export class BitBox02API {
                 onCloseCb();
             }
         });
+    }
+
+    async btcDisplayAddressSimple(coin, keypath, simpleType) {
+        const display = true;
+        return this.firmware().js.AsyncBTCAddressSimple(
+            coin,
+            keypath,
+            simpleType,
+            display,
+        );
+    }
+
+    async btcSignSimple(
+        coin,
+        simpleType,
+        keypathAccount,
+        inputs,
+        outputs,
+        version,
+        locktime) {
+        return this.firmware().js.AsyncBTCSignSimple(
+            coin,
+            simpleType,
+            keypathAccount,
+            inputs,
+            outputs,
+            version,
+            locktime,
+        );
     }
 
     /**

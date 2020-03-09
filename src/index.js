@@ -1,13 +1,15 @@
-import { sanitizeEthTransactionData } from './eth-utils.js';
+import { getKeypathFromString } from './eth-utils.js';
+
 import {
     BitBox02API,
     getDevicePath,
-    api
+    api,
+    HARDENED,
 } from './bitbox02.js';
 
 export {
     BitBox02API,
     getDevicePath,
     api,
-    sanitizeEthTransactionData
+    getKeypathFromString,
 }

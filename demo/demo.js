@@ -1,7 +1,6 @@
-import { api, getDevicePath, BitBox02API } from './bitbox02.js'
+import { api, getDevicePath, BitBox02API, getKeypathFromString, HARDENED } from './bitbox02.js'
 
 const firmwareAPI = api.firmware;
-const HARDENED = 0x80000000;
 
 function reset() {
     document.getElementById("demo").disabled = false;
@@ -72,13 +71,9 @@ class BitBox02 {
 }
 
 let device;
-let firmware;
 const runDemo = async () => {
     device  = new BitBox02(reset)
     await device.init();
-    // TODO: (@benma) `firmware` is no longer needed after refactoring BTC methods to work like eth with
-    // `device.bitbox02API` and adding them to bitbox02.js
-    firmware = device.bitbox02API.firmware()
 }
 
 // ---- Demo buttons
@@ -135,17 +130,12 @@ ethSignMsg.addEventListener("click", async () => {
     }
 });
 
-// TODO: (@benma) refactor to use `device.bitbox02API` instead
 document.getElementById("btcAddressSimple").addEventListener("click", async () => {
-    const pub = display => firmware.js.AsyncBTCAddressSimple(
+    await device.bitbox02API.btcDisplayAddressSimple(
         firmwareAPI.messages.BTCCoin.BTC,
-        [49 + HARDENED, 0 + HARDENED, 0 + HARDENED, 0, 0],
+        getKeypathFromString("m/49'/0'/0'/0/0"),
         firmwareAPI.messages.BTCScriptConfig_SimpleType.P2WPKH_P2SH,
-        display,
-    )
-    const addr = await pub(false);
-    pub(true);
-    alert(addr);
+    );
 });
 
 document.getElementById("btcSignSimple").addEventListener("click", async () => {
@@ -182,7 +172,7 @@ document.getElementById("btcSignSimple").addEventListener("click", async () => {
         },
     ];
     try {
-        const signatures = await firmware.js.AsyncBTCSignSimple(
+        const signatures = await device.bitbox02API.btcSignSimple(
             firmwareAPI.messages.BTCCoin.BTC,
             firmwareAPI.messages.BTCScriptConfig_SimpleType.P2WPKH,
             [84 + HARDENED, 0 + HARDENED, bip44Account],
