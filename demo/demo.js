@@ -19,14 +19,14 @@ class BitBox02 {
         document.getElementById("demo").disabled = true;
         try {
             const devicePath = await getDevicePath();
-            this.bitbox02API = new BitBox02API(devicePath);
+            this.api = new BitBox02API(devicePath);
 
             document.getElementById("close").addEventListener("click", () => {
-                this.bitbox02API.close();
+                this.api.close();
                 reset();
             });
 
-            await this.bitbox02API.connect(
+            await this.api.connect(
                 pairingCode => {
                     document.getElementById("intro").style.display = "none";
                     document.getElementById("pairing").style.display = "flex";
@@ -51,7 +51,7 @@ class BitBox02 {
             reset();
             return;
         }
-        switch (this.bitbox02API.firmware().Product()) {
+        switch (this.api.firmware().Product()) {
             case constants.Product.BitBox02Multi:
                 console.log("This is a BitBox02 Multi");
                 break;
@@ -79,14 +79,14 @@ document.getElementById("demo").addEventListener("click", runDemo);
 
 // Get ethereum xpub for given keypath
 ethPub.addEventListener("click", async () => {
-    const ethPub = await device.bitbox02API.ethGetRootPubKey("m/44'/60'/0'/0");
+    const ethPub = await device.api.ethGetRootPubKey("m/44'/60'/0'/0");
     alert(ethPub);
 });
 
 // Get ethereum address for given keypath
 // Only displays address on device, does not return. For verification, derive address from xpub
 ethAddr.addEventListener("click", async () => {
-    await device.bitbox02API.ethDisplayAddress("m/44'/60'/0'/0/0");
+    await device.api.ethDisplayAddress("m/44'/60'/0'/0/0");
 });
 
 // Sign ethereum transaction
@@ -104,7 +104,7 @@ ethSign.addEventListener("click", async () => {
         }
     }
     try {
-        const sig = await device.bitbox02API.ethSignTransaction(signingData);
+        const sig = await device.api.ethSignTransaction(signingData);
         console.log(sig);
     } catch(e) {
         alert(e);
@@ -114,7 +114,7 @@ ethSign.addEventListener("click", async () => {
 // Sign "hello world" ethereum message
 ethSignMsg.addEventListener("click", async () => {
     try {
-        const sig = await device.bitbox02API.ethSignMessage({
+        const sig = await device.api.ethSignMessage({
             keypath: "m/44'/60'/0'/0/0",
             // "hello world"
             message: new Uint8Array([104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100])
@@ -127,7 +127,7 @@ ethSignMsg.addEventListener("click", async () => {
 });
 
 document.getElementById("btcAddressSimple").addEventListener("click", async () => {
-    await device.bitbox02API.btcDisplayAddressSimple(
+    await device.api.btcDisplayAddressSimple(
         constants.messages.BTCCoin.BTC,
         getKeypathFromString("m/49'/0'/0'/0/0"),
         constants.messages.BTCScriptConfig_SimpleType.P2WPKH_P2SH,
@@ -168,7 +168,7 @@ document.getElementById("btcSignSimple").addEventListener("click", async () => {
         },
     ];
     try {
-        const signatures = await device.bitbox02API.btcSignSimple(
+        const signatures = await device.api.btcSignSimple(
             constants.messages.BTCCoin.BTC,
             constants.messages.BTCScriptConfig_SimpleType.P2WPKH,
             [84 + HARDENED, 0 + HARDENED, bip44Account],
