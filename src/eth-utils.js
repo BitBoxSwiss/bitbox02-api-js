@@ -1,13 +1,13 @@
-import { firmwareAPI, HARDENED } from './bitbox02.js';
+import { HARDENED } from './bitbox02.js';
 
 export const getCoinFromChainId = chainId => {
     switch(chainId) {
         case 1:
-            return firmwareAPI.messages.ETHCoin.ETH;
+            return api.firmware.messages.ETHCoin.ETH;
         case 3:
-            return firmwareAPI.messages.ETHCoin.RopstenETH;
+            return api.firmware.messages.ETHCoin.RopstenETH;
         case 4:
-            return firmwareAPI.messages.ETHCoin.RinkebyETH;
+            return api.firmware.messages.ETHCoin.RinkebyETH;
         default:
             throw new Error('Unsupported network');
     }
@@ -48,9 +48,9 @@ export const getCoinFromKeypath = keypathArray => {
     }
     switch(keypathArray[1]) {
         case 60 + HARDENED:
-            return firmwareAPI.messages.ETHCoin.ETH;
+            return api.firmware.messages.ETHCoin.ETH;
         case 1 + HARDENED:
-            return firmwareAPI.messages.ETHCoin.RopstenETH;
+            return api.firmware.messages.ETHCoin.RopstenETH;
         default:
             throw new Error('Invalid keypath');
     }
