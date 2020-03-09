@@ -5,6 +5,7 @@ function reset() {
     document.getElementById("pairing").style.display = "none";
     document.getElementById("pairingOK").disabled = true;
     document.getElementById("initialized").style.display = "none";
+    document.getElementById("intro").style.display = "flex";
 }
 
 class BitBox02 {
@@ -27,7 +28,8 @@ class BitBox02 {
 
             await this.bitbox02API.connect(
                 pairingCode => {
-                    document.getElementById("pairing").style.display = "block";
+                    document.getElementById("intro").style.display = "none";
+                    document.getElementById("pairing").style.display = "flex";
                     document.getElementById("pairingCode").innerHTML = pairingCode.replace("\n", "<br/>");
                 },
                 () => {
@@ -59,8 +61,8 @@ class BitBox02 {
         }
 
         document.getElementById("pairing").style.display = "none";
-        initializedDiv.style.display = "block";
-
+        document.getElementById("intro").style.display = "none";
+        initializedDiv.style.display = "flex";
     }
 }
 
