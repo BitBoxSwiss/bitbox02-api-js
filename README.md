@@ -117,7 +117,7 @@ const result = await BitBox02.ethSignMessage(msgData);
 
 #### ethDisplayAddress: Display Ethereum address on BitBox02 screen for verification
 ```javascript
-/** 
+/**
  * @param keypath string, e.g. m/44'/60'/0'/0/0 for the first mainnet account
  */
 await BitBox02.ethDisplayAddress(keypath)
@@ -177,7 +177,7 @@ class BitBox02 {
           });
         },
 
-        /** @param handleAttastionCb
+        /** @param handleAttestationCb
         *  Store the attestation result on the class instance. If attestation fails, the user might have a fake device.
         *  Handle this condition below.
         */

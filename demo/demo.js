@@ -1,7 +1,4 @@
-import { api, getDevicePath, BitBox02API } from './bitbox02.js'
-
-const firmwareAPI = api.firmware;
-const HARDENED = 0x80000000;
+import { api, getDevicePath, BitBox02API, getKeypathFromString, HARDENED } from './bitbox02-api.js'
 
 function reset() {
     document.getElementById("demo").disabled = false;
@@ -13,8 +10,6 @@ function reset() {
 class BitBox02 {
     constructor(logout) {
         this.logout = logout;
-        this.status = undefined;
-        this.pairingConfirmed = false;
     }
 
     async init() {
@@ -28,7 +23,7 @@ class BitBox02 {
             document.getElementById("close").addEventListener("click", () => {
                 this.bitbox02API.close();
                 reset();
-              });
+            });
 
             await this.bitbox02API.connect(
                 pairingCode => {
@@ -42,15 +37,13 @@ class BitBox02 {
                     });
                 },
                 attestationResult => {
-                    alert("Attestation check: " + attestationResult);
+                    console.log("Attestation check:", attestationResult);
                 },
-                () => {
-                    reset();
-                },
+                this.logout,
                 status => {
                     console.log(status);
                 }
-              )
+            )
         } catch (e) {
             alert(e);
             reset();
@@ -65,20 +58,16 @@ class BitBox02 {
                 break;
         }
 
-    document.getElementById("pairing").style.display = "none";
-    initializedDiv.style.display = "block";
+        document.getElementById("pairing").style.display = "none";
+        initializedDiv.style.display = "block";
 
-  }
+    }
 }
 
 let device;
-let firmware;
 const runDemo = async () => {
     device  = new BitBox02(reset)
     await device.init();
-    // TODO: (@benma) `firmware` is no longer needed after refactoring BTC methods to work like eth with
-    // `device.bitbox02API` and adding them to bitbox02.js
-    firmware = device.bitbox02API.firmware()
 }
 
 // ---- Demo buttons
@@ -124,10 +113,10 @@ ethSign.addEventListener("click", async () => {
 ethSignMsg.addEventListener("click", async () => {
     try {
         const sig = await device.bitbox02API.ethSignMessage({
-                keypath: "m/44'/60'/0'/0/0",
-                // "hello world"
-                message: new Uint8Array([104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100])
-            }
+            keypath: "m/44'/60'/0'/0/0",
+            // "hello world"
+            message: new Uint8Array([104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100])
+        }
         );
         console.log(sig);
     } catch(e) {
@@ -135,17 +124,12 @@ ethSignMsg.addEventListener("click", async () => {
     }
 });
 
-// TODO: (@benma) refactor to use `device.bitbox02API` instead
 document.getElementById("btcAddressSimple").addEventListener("click", async () => {
-    const pub = display => firmware.js.AsyncBTCAddressSimple(
-        firmwareAPI.messages.BTCCoin.BTC,
-        [49 + HARDENED, 0 + HARDENED, 0 + HARDENED, 0, 0],
-        firmwareAPI.messages.BTCScriptConfig_SimpleType.P2WPKH_P2SH,
-        display,
-    )
-    const addr = await pub(false);
-    pub(true);
-    alert(addr);
+    await device.bitbox02API.btcDisplayAddressSimple(
+        api.firmware.messages.BTCCoin.BTC,
+        getKeypathFromString("m/49'/0'/0'/0/0"),
+        api.firmware.messages.BTCScriptConfig_SimpleType.P2WPKH_P2SH,
+    );
 });
 
 document.getElementById("btcSignSimple").addEventListener("click", async () => {
@@ -176,15 +160,15 @@ document.getElementById("btcSignSimple").addEventListener("click", async () => {
         },
         {
             "ours": false,
-            "type": firmwareAPI.messages.BTCOutputType.P2WSH,
+            "type": api.firmware.messages.BTCOutputType.P2WSH,
             "hash": new Uint8Array(32).fill(49), // arbitrary constant
             "value": 1e8 * 0.2,
         },
     ];
     try {
-        const signatures = await firmware.js.AsyncBTCSignSimple(
-            firmwareAPI.messages.BTCCoin.BTC,
-            firmwareAPI.messages.BTCScriptConfig_SimpleType.P2WPKH,
+        const signatures = await device.bitbox02API.btcSignSimple(
+            api.firmware.messages.BTCCoin.BTC,
+            api.firmware.messages.BTCScriptConfig_SimpleType.P2WPKH,
             [84 + HARDENED, 0 + HARDENED, bip44Account],
             inputs,
             outputs,
@@ -193,7 +177,7 @@ document.getElementById("btcSignSimple").addEventListener("click", async () => {
         );
         console.log("Signatures: ", signatures);
     } catch(err) {
-        if (firmwareAPI.IsErrorAbort(err)) {
+        if (api.firmware.IsErrorAbort(err)) {
             alert("aborted by user");
         } else {
             alert(err.Message);
