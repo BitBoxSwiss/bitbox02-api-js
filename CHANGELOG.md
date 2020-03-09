@@ -1,3 +1,8 @@
+# 0.4.0
+- Changed api.firmware.* to constants.* (all constants)
+- Changed api.firmware.isErrorAbort to isErrorAbort (direct export)
+- api no longer exported (treated as internal).
+
 # 0.3.0
 - Update from Go API: https://github.com/digitalbitbox/bitbox02-api-go/commit/7817ceb1fccc7276f17a6a468221258cbd4d5bac
     - Includes support for firmware 6.1.0 and makes it the lowest supported version
@@ -17,7 +22,7 @@
 - Add `getCoinFromChainId()`, `getKeypathFromString()`, and `getCoinFromKeypath()` eth utils to handle mainnet and testnet keypaths and coins correctly. Currently only two keypaths are supported:
     - `m/44'/60'/0'/0` for mainnet and
     - `m/44'/1'/0'/0`  for Rinkeby and Ropsten testnets
-  
+
 
 # 0.1.0
 

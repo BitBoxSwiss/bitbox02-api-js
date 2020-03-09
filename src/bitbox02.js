@@ -2,7 +2,9 @@ import './bitbox02-api-go.js';
 
 import { getKeypathFromString, getCoinFromKeypath, getCoinFromChainId } from './eth-utils.js';
 
-export const api = bitbox02;
+const api = bitbox02;
+export const constants = bitbox02.constants;
+export const isErrorAbort = bitbox02.IsErrorAbort;
 export const HARDENED = 0x80000000;
 
 function sleep(ms) {
@@ -77,7 +79,7 @@ export class BitBox02API {
             self.socket.binaryType = 'arraybuffer'
             self.socket.onopen = async function (event) {
                 try {
-                    self.fw = api.firmware.New(onWrite);
+                    self.fw = api.New(onWrite);
 
                     // Turn all Async* methods into promises.
                     for (const key in self.firmware().js) {
@@ -87,25 +89,25 @@ export class BitBox02API {
                     }
 
                     self.firmware().SetOnEvent(ev => {
-                        if (ev === api.firmware.Event.StatusChanged && self.firmware()) {
+                        if (ev === constants.Event.StatusChanged && self.firmware()) {
                             setStatusCb(self.firmware().Status());
                         }
-                        if (ev === api.firmware.Event.StatusChanged && self.firmware().Status() === api.firmware.Status.Unpaired) {
+                        if (ev === constants.Event.StatusChanged && self.firmware().Status() === constants.Status.Unpaired) {
                             const [channelHash] = self.firmware().ChannelHash();
                             showPairingCb(channelHash);
                         }
-                        if (ev === api.firmware.Event.AttestationCheckDone) {
+                        if (ev === constants.Event.AttestationCheckDone) {
                             handleAttestationCb(self.firmware().Attestation());
                         }
-                        if (ev === api.firmware.Event.StatusChanged && self.firmware().Status() === api.firmware.Status.RequireFirmwareUpgrade) {
+                        if (ev === constants.Event.StatusChanged && self.firmware().Status() === constants.Status.RequireFirmwareUpgrade) {
                             self.socket.close();
                             reject('Firmware upgrade required');
                         }
-                        if (ev === api.firmware.Event.StatusChanged && self.firmware().Status() === api.firmware.Status.RequireAppUpgrade) {
+                        if (ev === constants.Event.StatusChanged && self.firmware().Status() === constants.Status.RequireAppUpgrade) {
                             self.socket.close();
                             reject('Unsupported firmware');
                         }
-                        if (ev === api.firmware.Event.StatusChanged && self.firmware().Status() === api.firmware.Status.Uninitialized) {
+                        if (ev === constants.Event.StatusChanged && self.firmware().Status() === constants.Status.Uninitialized) {
                             self.socket.close();
                             reject('Uninitialized');
                         }
@@ -113,18 +115,18 @@ export class BitBox02API {
 
                     await self.firmware().js.AsyncInit();
                     switch(self.firmware().Status()) {
-                        case api.firmware.Status.PairingFailed:
+                        case constants.Status.PairingFailed:
                             self.socket.close();
                             throw new Error("Pairing rejected");
-                        case api.firmware.Status.Unpaired:
+                        case constants.Status.Unpaired:
                             await userVerify()
                             await self.firmware().js.AsyncChannelHashVerify(true);
                             break;
-                        case api.firmware.Status.Initialized:
+                        case constants.Status.Initialized:
                             // Pairing skipped.
                             break;
                         default:
-                            throw new Error("Unexpected status: " + self.firmware().Status() + "," + api.firmware.Status.Unpaired);
+                            throw new Error("Unexpected status: " + self.firmware().Status() + "," + constants.Status.Unpaired);
                     }
 
                     resolve();
@@ -186,7 +188,7 @@ export class BitBox02API {
         const xpub = await this.firmware().js.AsyncETHPub(
             coin,
             keypathArray,
-            api.firmware.messages.ETHPubRequest_OutputType.XPUB,
+            constants.messages.ETHPubRequest_OutputType.XPUB,
             false,
             new Uint8Array()
         );
@@ -206,7 +208,7 @@ export class BitBox02API {
         this.firmware().js.AsyncETHPub(
             coin,
             keypathArray,
-            api.firmware.messages.ETHPubRequest_OutputType.ADDRESS,
+            constants.messages.ETHPubRequest_OutputType.ADDRESS,
             true,
             new Uint8Array()
         );
@@ -248,7 +250,7 @@ export class BitBox02API {
             };
             return result;
         } catch (err) {
-            if (api.firmware.IsErrorAbort(err)) {
+            if (api.IsErrorAbort(err)) {
                 throw new Error('User abort');
             } else {
                 throw new Error(err.Message);
@@ -286,7 +288,7 @@ export class BitBox02API {
             };
             return result;
         } catch(err) {
-            if (api.firmware.IsErrorAbort(err)) {
+            if (api.IsErrorAbort(err)) {
                 throw new Error('User abort');
             } else {
                 throw new Error(err.Message);

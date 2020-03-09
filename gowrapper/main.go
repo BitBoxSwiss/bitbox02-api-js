@@ -73,16 +73,15 @@ func (communication *bb02Communication) Close() {
 
 func main() {
 	js.Global.Set("bitbox02", map[string]interface{}{
-		"common": map[string]interface{}{
+		"IsErrorAbort": func(jsError map[string]interface{}) bool {
+			return firmware.IsErrorAbort(fromJSError(jsError))
+		},
+		"New": newJSDevice,
+		"constants": map[string]interface{}{
 			"Product": map[string]interface{}{
 				"BitBox02Multi":      common.ProductBitBox02Multi,
 				"BitBox02BTCOnly":    common.ProductBitBox02BTCOnly,
 				"BitBoxBaseStandard": common.ProductBitBoxBaseStandard,
-			},
-		},
-		"firmware": map[string]interface{}{
-			"IsErrorAbort": func(jsError map[string]interface{}) bool {
-				return firmware.IsErrorAbort(fromJSError(jsError))
 			},
 			"Status": map[string]interface{}{
 				"Connected":              firmware.StatusConnected,
@@ -106,7 +105,6 @@ func main() {
 				"BTCScriptConfig_SimpleType": messages.BTCScriptConfig_SimpleType_value,
 				"BTCOutputType":              messages.BTCOutputType_value,
 			},
-			"New": newJSDevice,
 		},
 	})
 }

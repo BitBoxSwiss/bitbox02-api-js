@@ -1,4 +1,4 @@
-import { api, getDevicePath, BitBox02API, getKeypathFromString, HARDENED } from './bitbox02-api.js'
+import { isErrorAbort, constants, getDevicePath, BitBox02API, getKeypathFromString, HARDENED } from './bitbox02-api.js'
 
 function reset() {
     document.getElementById("demo").disabled = false;
@@ -52,10 +52,10 @@ class BitBox02 {
             return;
         }
         switch (this.bitbox02API.firmware().Product()) {
-            case api.common.Product.BitBox02Multi:
+            case constants.Product.BitBox02Multi:
                 console.log("This is a BitBox02 Multi");
                 break;
-            case api.common.Product.BitBox02BTCOnly:
+            case constants.Product.BitBox02BTCOnly:
                 console.log("This is a BitBox02 BTC-only");
                 break;
         }
@@ -128,9 +128,9 @@ ethSignMsg.addEventListener("click", async () => {
 
 document.getElementById("btcAddressSimple").addEventListener("click", async () => {
     await device.bitbox02API.btcDisplayAddressSimple(
-        api.firmware.messages.BTCCoin.BTC,
+        constants.messages.BTCCoin.BTC,
         getKeypathFromString("m/49'/0'/0'/0/0"),
-        api.firmware.messages.BTCScriptConfig_SimpleType.P2WPKH_P2SH,
+        constants.messages.BTCScriptConfig_SimpleType.P2WPKH_P2SH,
     );
 });
 
@@ -162,15 +162,15 @@ document.getElementById("btcSignSimple").addEventListener("click", async () => {
         },
         {
             "ours": false,
-            "type": api.firmware.messages.BTCOutputType.P2WSH,
+            "type": constants.messages.BTCOutputType.P2WSH,
             "hash": new Uint8Array(32).fill(49), // arbitrary constant
             "value": 1e8 * 0.2,
         },
     ];
     try {
         const signatures = await device.bitbox02API.btcSignSimple(
-            api.firmware.messages.BTCCoin.BTC,
-            api.firmware.messages.BTCScriptConfig_SimpleType.P2WPKH,
+            constants.messages.BTCCoin.BTC,
+            constants.messages.BTCScriptConfig_SimpleType.P2WPKH,
             [84 + HARDENED, 0 + HARDENED, bip44Account],
             inputs,
             outputs,
@@ -179,7 +179,7 @@ document.getElementById("btcSignSimple").addEventListener("click", async () => {
         );
         console.log("Signatures: ", signatures);
     } catch(err) {
-        if (api.firmware.IsErrorAbort(err)) {
+        if (isErrorAbort(err)) {
             alert("aborted by user");
         } else {
             alert(err.Message);
