@@ -146,6 +146,10 @@ export class BitBox02API {
         });
     }
 
+    async btcXPub(coin, keypath, xpubType, display) {
+        return this.firmware().js.AsyncBTCXPub(coin, keypath, xpubType, display);
+    }
+
     async btcDisplayAddressSimple(coin, keypath, simpleType) {
         const display = true;
         return this.firmware().js.AsyncBTCAddressSimple(
@@ -168,6 +172,37 @@ export class BitBox02API {
             coin,
             simpleType,
             keypathAccount,
+            inputs,
+            outputs,
+            version,
+            locktime,
+        );
+    }
+
+    async btcMaybeRegisterScriptConfig(account, getName) {
+        const isRegistered = await this.firmware().js.AsyncBTCIsScriptConfigRegistered(account);
+        if (!isRegistered) {
+            await this.firmware().js.AsyncBTCRegisterScriptConfig(account, await getName());
+        }
+    }
+
+    async btcDisplayAddressMultisig(account, keypath) {
+        const display = true;
+        return this.firmware().js.AsyncBTCAddressMultisig(
+            account,
+            keypath,
+            display,
+        );
+    }
+
+    async btcSignMultisig(
+        account,
+        inputs,
+        outputs,
+        version,
+        locktime) {
+        return this.firmware().js.AsyncBTCSignMultisig(
+            account,
             inputs,
             outputs,
             version,

@@ -2,6 +2,7 @@
 - Changed api.firmware.* to constants.* (all constants)
 - Changed api.firmware.isErrorAbort to isErrorAbort (direct export)
 - api no longer exported (treated as internal).
+- add btcXPub, btcMaybeRegisterScriptConfig, btcDisplayAddressMultisig, btcSignMultisig api calls.
 
 # 0.3.0
 - Update from Go API: https://github.com/digitalbitbox/bitbox02-api-go/commit/7817ceb1fccc7276f17a6a468221258cbd4d5bac

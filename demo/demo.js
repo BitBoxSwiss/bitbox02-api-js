@@ -134,30 +134,27 @@ document.getElementById("btcAddressSimple").addEventListener("click", async () =
     );
 });
 
-document.getElementById("btcSignSimple").addEventListener("click", async () => {
-    const bip44Account = 0 + HARDENED;
-    const version = 1;
-    const locktime = 0;
+function makeExampleTx(keypathAccount) {
     const inputs = [
         {
             "prevOutHash": new Uint8Array(32).fill(49), // arbitrary constant
             "prevOutIndex": 1,
             "prevOutValue": "60005000", // satoshis as a decimal string
             "sequence": 0xFFFFFFFF,
-            "keypath": [84 + HARDENED, 0 + HARDENED, bip44Account, 0, 0],
+            "keypath": keypathAccount.concat([0, 0]),
         },
         {
             "prevOutHash": new Uint8Array(32).fill(49), // arbitrary constant
             "prevOutIndex": 1,
             "prevOutValue": "60005000", // satoshis as a decimal string
             "sequence": 0xFFFFFFFF,
-            "keypath": [84 + HARDENED, 0 + HARDENED, bip44Account, 0, 1],
+            "keypath": keypathAccount.concat([0, 1]),
         }
     ];
     const outputs = [
         {
             "ours": true, // change
-            "keypath": [84 + HARDENED, 0 + HARDENED, bip44Account, 1, 0],
+            "keypath": keypathAccount.concat([1, 0]),
             "value": "100000000", // satoshis as a decimal string
         },
         {
@@ -167,11 +164,86 @@ document.getElementById("btcSignSimple").addEventListener("click", async () => {
             "value": "20000000", // satoshis as a decimal string,
         },
     ];
+    const version = 1;
+    const locktime = 0;
+    return { inputs, outputs, version, locktime };
+}
+
+document.getElementById("btcSignSimple").addEventListener("click", async () => {
+    const keypathAccount = getKeypathFromString("m/84'/0'/0'");
+    const { inputs, outputs, version, locktime } = makeExampleTx(keypathAccount);
     try {
         const signatures = await device.api.btcSignSimple(
             constants.messages.BTCCoin.BTC,
             constants.messages.BTCScriptConfig_SimpleType.P2WPKH,
-            [84 + HARDENED, 0 + HARDENED, bip44Account],
+            keypathAccount,
+            inputs,
+            outputs,
+            version,
+            locktime,
+        );
+        console.log("Signatures: ", signatures);
+    } catch(err) {
+        if (isErrorAbort(err)) {
+            alert("aborted by user");
+        } else {
+            alert(err.Message);
+        }
+    }
+});
+
+async function makeExampleMultisigAccount(keypathAccount) {
+    const coin = constants.messages.BTCCoin.BTC;
+
+    const ourXPub = await device.api.btcXPub(coin, keypathAccount, constants.messages.BTCXPubType.ZPUB, false);
+
+    // One of the xpubs must be ours.
+    // The xpubs can be provided in any version (xpub, ypub, zpub, etc.).
+    const xpubs = [
+        ourXPub,
+        "xpub6FEZ9Bv73h1vnE4TJG4QFj2RPXJhhsPbnXgFyH3ErLvpcZrDcynY65bhWga8PazWHLSLi23PoBhGcLcYW6JRiJ12zXZ9Aop4LbAqsS3gtcy",
+    ];
+
+    const account = {
+        "coin": coin,
+        "keypathAccount": keypathAccount,
+        "threshold": 1,
+        "xpubs": xpubs,
+        "ourXPubIndex": 0,
+    };
+
+    const getName = async () => prompt("Please give a name for the multisig account (max 30 chars)");
+    await device.api.btcMaybeRegisterScriptConfig(account, getName);
+    return account;
+}
+
+document.getElementById("btcAddressMultisig").addEventListener("click", async () => {
+    const keypath = getKeypathFromString("m/48'/0'/0'/2'/0/0");
+    const keypathAccount = keypath.slice(0, keypath.length - 2);
+
+    try {
+        const account = await makeExampleMultisigAccount(keypathAccount);
+        await device.api.btcDisplayAddressMultisig(account, keypath);
+    } catch(err) {
+        if (isErrorAbort(err)) {
+            alert("aborted by user");
+        } else {
+            alert(err.Message);
+        }
+    }
+});
+
+document.getElementById("btcSignMultisig").addEventListener("click", async () => {
+    const coin = constants.messages.BTCCoin.BTC;
+    const keypathAccount = getKeypathFromString("m/48'/0'/0'/2'");
+
+    const account = await makeExampleMultisigAccount(keypathAccount);
+
+    const { inputs, outputs, version, locktime } = makeExampleTx(keypathAccount);
+
+    try {
+        const signatures = await device.api.btcSignMultisig(
+            account,
             inputs,
             outputs,
             version,
