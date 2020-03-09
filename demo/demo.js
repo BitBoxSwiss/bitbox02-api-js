@@ -23,7 +23,7 @@ class BitBox02 {
             document.getElementById("close").addEventListener("click", () => {
                 this.bitbox02API.close();
                 reset();
-              });
+            });
 
             await this.bitbox02API.connect(
                 pairingCode => {
@@ -43,7 +43,7 @@ class BitBox02 {
                 status => {
                     console.log(status);
                 }
-              )
+            )
         } catch (e) {
             alert(e);
             reset();
@@ -58,10 +58,10 @@ class BitBox02 {
                 break;
         }
 
-    document.getElementById("pairing").style.display = "none";
-    initializedDiv.style.display = "block";
+        document.getElementById("pairing").style.display = "none";
+        initializedDiv.style.display = "block";
 
-  }
+    }
 }
 
 let device;
@@ -113,10 +113,10 @@ ethSign.addEventListener("click", async () => {
 ethSignMsg.addEventListener("click", async () => {
     try {
         const sig = await device.bitbox02API.ethSignMessage({
-                keypath: "m/44'/60'/0'/0/0",
-                // "hello world"
-                message: new Uint8Array([104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100])
-            }
+            keypath: "m/44'/60'/0'/0/0",
+            // "hello world"
+            message: new Uint8Array([104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100])
+        }
         );
         console.log(sig);
     } catch(e) {

@@ -189,7 +189,7 @@ export class BitBox02API {
             api.firmware.messages.ETHPubRequest_OutputType.XPUB,
             false,
             new Uint8Array()
-          );
+        );
         return xpub
     };
 
@@ -209,7 +209,7 @@ export class BitBox02API {
             api.firmware.messages.ETHPubRequest_OutputType.ADDRESS,
             true,
             new Uint8Array()
-          );
+        );
     };
 
     /**
@@ -248,7 +248,7 @@ export class BitBox02API {
             };
             return result;
         } catch (err) {
-                if (api.firmware.IsErrorAbort(err)) {
+            if (api.firmware.IsErrorAbort(err)) {
                 throw new Error('User abort');
             } else {
                 throw new Error(err.Message);
@@ -277,20 +277,20 @@ export class BitBox02API {
                 getCoinFromKeypath(keypath),
                 keypath,
                 msgData.message
-          );
+            );
 
             const result = {
                 r: sig.slice(0, 0 + 32),
                 s: sig.slice(0 + 32, 0 + 32 + 32),
                 v: [parseInt(sig.slice(64), 16) + 27]
-          };
-          return result;
+            };
+            return result;
         } catch(err) {
-          if (api.firmware.IsErrorAbort(err)) {
-              throw new Error('User abort');
-          } else {
-              throw new Error(err.Message);
-          }
+            if (api.firmware.IsErrorAbort(err)) {
+                throw new Error('User abort');
+            } else {
+                throw new Error(err.Message);
+            }
         }
     }
 
