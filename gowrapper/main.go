@@ -213,33 +213,93 @@ func convertViaJSON(in interface{}, out interface{}) error {
 	return json.Unmarshal(jsonBytes, out)
 }
 
+type uint64AsDecimalString uint64
+
+func (u *uint64AsDecimalString) UnmarshalJSON(bytes []byte) error {
+	var str string
+	if err := json.Unmarshal(bytes, &str); err != nil {
+		return err
+	}
+	int, ok := new(big.Int).SetString(str, 10)
+	if !ok {
+		return errors.New("expected decimal string as value")
+	}
+	*u = uint64AsDecimalString(int.Uint64())
+	return nil
+}
+
+type btcSignInputRequest struct {
+	PrevOutHash  []byte                `json:"prevOutHash"`
+	PrevOutIndex uint32                `json:"prevOutIndex"`
+	PrevOutValue uint64AsDecimalString `json:"prevOutValue"`
+	Sequence     uint32                `json:"sequence"`
+	Keypath      []uint32              `json:"keypath"`
+}
+
+func (input *btcSignInputRequest) toInput() *messages.BTCSignInputRequest {
+	return &messages.BTCSignInputRequest{
+		PrevOutHash:  input.PrevOutHash,
+		PrevOutIndex: input.PrevOutIndex,
+		PrevOutValue: uint64(input.PrevOutValue),
+		Sequence:     input.Sequence,
+		Keypath:      input.Keypath,
+	}
+}
+
+type btcSignOutputRequest struct {
+	Ours    bool                   `json:"ours"`
+	Type    messages.BTCOutputType `json:"type"`
+	Value   uint64AsDecimalString  `json:"value"`
+	Hash    []byte                 `json:"hash"`
+	Keypath []uint32               `json:"keypath"`
+}
+
+func (output *btcSignOutputRequest) toOutput() *messages.BTCSignOutputRequest {
+	return &messages.BTCSignOutputRequest{
+		Ours:    output.Ours,
+		Type:    output.Type,
+		Value:   uint64(output.Value),
+		Hash:    output.Hash,
+		Keypath: output.Keypath,
+	}
+}
+
 func (device *jsDevice) AsyncBTCSignSimple(
 	done func([][]byte, *jsError),
 	coin messages.BTCCoin,
 	simpleType messages.BTCScriptConfig_SimpleType,
 	keypathAccount []uint32,
-	inputs []map[string]interface{}, // matches []*messages.BTCSignInputrequest
-	outputs []map[string]interface{}, // matches []*messages.BTCSignOutputrequest
+	inputs []map[string]interface{}, // matches []*btcSignInputRequest
+	outputs []map[string]interface{}, // matches []*btcSignOutputRequest
 	version uint32,
 	locktime uint32,
 ) {
 	go func() {
-		var theInputs []*messages.BTCSignInputRequest
+		// Seems there is no easy way to convert js objects...
+		var theInputs []*btcSignInputRequest
 		if err := convertViaJSON(inputs, &theInputs); err != nil {
 			done(nil, toJSError(err))
 			return
 		}
-		var theOutputs []*messages.BTCSignOutputRequest
+		theInputs2 := make([]*messages.BTCSignInputRequest, len(theInputs))
+		for i, input := range theInputs {
+			theInputs2[i] = input.toInput()
+		}
+		var theOutputs []*btcSignOutputRequest
 		if err := convertViaJSON(outputs, &theOutputs); err != nil {
 			done(nil, toJSError(err))
 			return
+		}
+		theOutputs2 := make([]*messages.BTCSignOutputRequest, len(theOutputs))
+		for i, output := range theOutputs {
+			theOutputs2[i] = output.toOutput()
 		}
 		signatures, err := device.device.BTCSign(
 			coin,
 			firmware.NewBTCScriptConfigSimple(simpleType),
 			keypathAccount,
-			theInputs,
-			theOutputs,
+			theInputs2,
+			theOutputs2,
 			version,
 			locktime,
 		)

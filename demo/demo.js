@@ -142,14 +142,14 @@ document.getElementById("btcSignSimple").addEventListener("click", async () => {
         {
             "prevOutHash": new Uint8Array(32).fill(49), // arbitrary constant
             "prevOutIndex": 1,
-            "prevOutValue": 1e8 * 0.60005,
+            "prevOutValue": "60005000", // satoshis as a decimal string
             "sequence": 0xFFFFFFFF,
             "keypath": [84 + HARDENED, 0 + HARDENED, bip44Account, 0, 0],
         },
         {
             "prevOutHash": new Uint8Array(32).fill(49), // arbitrary constant
             "prevOutIndex": 1,
-            "prevOutValue": 1e8 * 0.60005,
+            "prevOutValue": "60005000", // satoshis as a decimal string
             "sequence": 0xFFFFFFFF,
             "keypath": [84 + HARDENED, 0 + HARDENED, bip44Account, 0, 1],
         }
@@ -158,13 +158,13 @@ document.getElementById("btcSignSimple").addEventListener("click", async () => {
         {
             "ours": true, // change
             "keypath": [84 + HARDENED, 0 + HARDENED, bip44Account, 1, 0],
-            "value": 1e8 * 1,
+            "value": "100000000", // satoshis as a decimal string
         },
         {
             "ours": false,
             "type": constants.messages.BTCOutputType.P2WSH,
             "hash": new Uint8Array(32).fill(49), // arbitrary constant
-            "value": 1e8 * 0.2,
+            "value": "20000000", // satoshis as a decimal string,
         },
     ];
     try {
