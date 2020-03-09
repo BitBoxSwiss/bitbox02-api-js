@@ -12,4 +12,5 @@ export {
     getDevicePath,
     api,
     getKeypathFromString,
+    HARDENED,
 }

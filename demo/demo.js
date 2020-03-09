@@ -1,4 +1,4 @@
-import { api, getDevicePath, BitBox02API, getKeypathFromString, HARDENED } from './bitbox02.js'
+import { api, getDevicePath, BitBox02API, getKeypathFromString, HARDENED } from './bitbox02-api.js'
 
 function reset() {
     document.getElementById("demo").disabled = false;

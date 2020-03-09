@@ -1,4 +1,4 @@
-import { HARDENED } from './bitbox02.js';
+import { api, HARDENED } from './bitbox02.js';
 
 export const getCoinFromChainId = chainId => {
     switch(chainId) {
