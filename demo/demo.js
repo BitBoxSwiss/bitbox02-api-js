@@ -10,8 +10,6 @@ function reset() {
 class BitBox02 {
     constructor(logout) {
         this.logout = logout;
-        this.status = undefined;
-        this.pairingConfirmed = false;
     }
 
     async init() {
@@ -39,7 +37,7 @@ class BitBox02 {
                     });
                 },
                 attestationResult => {
-                    alert("Attestation check: " + attestationResult);
+                    console.log("Attestation check:", attestationResult);
                 },
                 this.logout,
                 status => {
