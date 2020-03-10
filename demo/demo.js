@@ -21,23 +21,16 @@ class BitBox02 {
             const devicePath = await getDevicePath();
             this.api = new BitBox02API(devicePath);
 
-            document.getElementById("close").addEventListener("click", () => {
-                this.api.close();
-                reset();
-            });
-
             await this.api.connect(
                 pairingCode => {
                     document.getElementById("intro").style.display = "none";
                     document.getElementById("pairing").style.display = "flex";
                     document.getElementById("pairingCode").innerHTML = pairingCode.replace("\n", "<br/>");
                 },
-                () => {
-                    return new Promise(resolve => {
-                        pairingOKButton.disabled = false;
-                        pairingOKButton.addEventListener("click", resolve);
-                    });
-                },
+                () => new Promise(resolve => {
+                    pairingOKButton.disabled = false;
+                    pairingOKButton.addEventListener("click", resolve);
+                }),
                 attestationResult => {
                     console.log("Attestation check:", attestationResult);
                 },
@@ -76,6 +69,12 @@ const runDemo = async () => {
 
 // Start the demo
 document.getElementById("demo").addEventListener("click", runDemo);
+
+// Close the connection (logout).
+document.getElementById("close").addEventListener("click", () => {
+    device.api.close();
+});
+
 
 // Get ethereum xpub for given keypath
 ethPub.addEventListener("click", async () => {
