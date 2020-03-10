@@ -138,9 +138,9 @@ For a functioning sandbox implementation, you can see `demo.js`: https://github.
 
 ```javascript
 import {
+  constants,
   BitBox02API,
   getDevicePath,
-  api,
   sanitizeEthTransactionData
 } from 'bitbox02-api';
 
@@ -208,10 +208,10 @@ class BitBox02 {
     }
 
     switch (this.api.firmware().Product()) {
-        case api.common.Product.BitBox02Multi:
+        case constants.Product.BitBox02Multi:
             console.log("This is a BitBox02 Multi");
             break;
-        case api.common.Product.BitBox02BTCOnly:
+        case constants.Product.BitBox02BTCOnly:
             console.log("This is a BitBox02 BTC-only");
             break;
     }
