@@ -1,4 +1,4 @@
-export { getKeypathFromString } from './eth-utils.js';
+export { getKeypathFromString } from './utils.js';
 
 export {
     BitBox02API,

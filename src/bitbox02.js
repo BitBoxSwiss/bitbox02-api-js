@@ -1,6 +1,6 @@
 import './bitbox02-api-go.js';
 
-import { getKeypathFromString, getCoinFromKeypath, getCoinFromChainId } from './eth-utils.js';
+import { getKeypathFromString, getCoinFromKeypath, getCoinFromChainId } from './utils.js';
 
 const api = bitbox02;
 export const constants = bitbox02.constants;
