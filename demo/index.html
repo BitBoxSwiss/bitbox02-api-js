@@ -3,32 +3,45 @@
     <head>
         <meta charset="utf-8">
         <title>BitBox02 JS demo sandbox</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
         <link rel="stylesheet" href="style.css">
         <script type="module" src="demo.js"></script>
     </head>
     <body>
-        <p>
-            The <a href="https://github.com/digitalbitbox/bitbox-bridge/releases/">BitBoxBridge</a> must
-            be running, and one BitBox02 plugged in.
-        </p>
-        <button id="demo" autocomplete="off">Run demo</button>
-        <div id="pairing" style="display:none;">
-            Verify pairing<br/>
-            <div id="pairingCode"></div>
-            <button id="pairingOK" disabled>OK</button>
+        <div id="intro" class="introContainer">
+            <h4 class="lab-light m-bottom-medium">
+                The <a href="https://github.com/digitalbitbox/bitbox-bridge/releases/">BitBoxBridge</a> must
+                be running, and one <strong>BitBox</strong>02 plugged in.
+            </h4>
+            <button id="demo" class="primary" autocomplete="off">Run demo</button>
+        </div>
+        <div id="pairing" style="display:none;" class="introContainer">
+            <h3>Verify pairing</h3>
+            <div id="pairingCode" class="pairingCode m-bottom-medium"></div>
+            <button id="pairingOK" class="primary" disabled>OK</button>
             <br/><br/>
         </div>
-        <div id="initialized" style="display:none;">
-            <strong>BTC</strong>
-            <button id="btcAddressSimple" autocomplete="off">BTC Address (single-sig)</button>
-            <button id="btcSignSimple" autocomplete="off">BTC Sign (single-sig)</button>
-            <br/>
-            <strong>ETH</strong>
-            <button id="ethAddr" autocomplete="off">ETH address</button>
-            <button id="ethPub" autocomplete="off">ETH xpub</button>
-            <button id="ethSign" autocomplete="off">ETH sign</button>
-            <button id="ethSignMsg" autocomplete="off">ETH sign message</button>
-            <button id="close" autocomplete="off">Close</button>
+        <div id="initialized" style="display:none;" class="flex flex-column">
+            <div>
+                <h3>Bitcoin</h3>
+                <h5>Single-sig</h5>
+                <button class="primary" id="btcAddressSimple" autocomplete="off">Show address</button>
+                <button class="primary" id="btcSignSimple" autocomplete="off">Sign tx</button>
+                <h5>Multi-sig</h5>
+                <p>Currently only p2wsh/bech32, p2wsh-p2sh to follow.</p>
+                <button class="primary" id="btcAddressMultisig" autocomplete="off">Show address</button>
+                <button class="primary" id="btcSignMultisig" autocomplete="off">Sign tx</button>
+            </div>
+            <div>
+                <h3>Ethereum</h3>
+                <button class="primary" id="ethAddr" autocomplete="off">Show address</button>
+                <button class="primary" id="ethPub" autocomplete="off">Get xpub</button>
+                <button class="primary" id="ethSign" autocomplete="off">Sign tx</button>
+                <button class="primary" id="ethSignMsg" autocomplete="off">Sign message</button>
+            </div>
+            <div>
+                <button class="secondary" id="close" autocomplete="off">Close</button>
+            </div>
         </div>
     </body>
 </html>

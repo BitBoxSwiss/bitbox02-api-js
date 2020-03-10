@@ -126,10 +126,10 @@ await BitBox02.ethDisplayAddress(keypath)
 #### Check if product is supported
 To use with Ethereum, the user needs a BB02 Multi and not the Bitcoin Only edition. You can use for the following check:
 ```javascript
-import { api } from 'bitbox02-api';
+import { constants } from 'bitbox02-api';
 
-BitBox02.firmware().Product() === api.common.Product.BitBox02Multi
-BitBox02.firmware().Product() === api.common.Product.BitBox02BTCOnly
+BitBox02.firmware().Product() === constants.Product.BitBox02Multi
+BitBox02.firmware().Product() === constants.Product.BitBox02BTCOnly
 ```
 
 ## Sample integration
@@ -154,9 +154,9 @@ class BitBox02 {
   async init(keypath) {
     try {
       const devicePath = await getDevicePath();
-      this.bitbox02API = new BitBox02API(devicePath);
+      this.api = new BitBox02API(devicePath);
 
-      await this.bitbox02API.connect(
+      await this.api.connect(
 
         /** @param showPairingCb
          *  Store the pairing code on the class instance. Show this to the user to compare with code
@@ -207,7 +207,7 @@ class BitBox02 {
       return;
     }
 
-    switch (this.bitbox02API.firmware().Product()) {
+    switch (this.api.firmware().Product()) {
         case api.common.Product.BitBox02Multi:
             console.log("This is a BitBox02 Multi");
             break;
@@ -228,6 +228,6 @@ const device = new BitBox02(yourLogoutFunction)
 await device.init()
 
 // Now you can call any of the supported API methods documented above e.g.:
-const ethPub = await device.BitBox02API.ethGetRootPubKey("m/44'/60'/0'/0");
+const ethPub = await device.api.ethGetRootPubKey("m/44'/60'/0'/0");
 
 ```

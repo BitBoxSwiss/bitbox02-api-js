@@ -1,6 +1,6 @@
 {
   "name": "bitbox02-api",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "BitBox02 JavaScript library",
   "main": "src/index.js",
   "scripts": {

@@ -1,13 +1,13 @@
-import { api, HARDENED } from './bitbox02.js';
+import { constants, HARDENED } from './bitbox02.js';
 
 export const getCoinFromChainId = chainId => {
     switch(chainId) {
         case 1:
-            return api.firmware.messages.ETHCoin.ETH;
+            return constants.messages.ETHCoin.ETH;
         case 3:
-            return api.firmware.messages.ETHCoin.RopstenETH;
+            return constants.messages.ETHCoin.RopstenETH;
         case 4:
-            return api.firmware.messages.ETHCoin.RinkebyETH;
+            return constants.messages.ETHCoin.RinkebyETH;
         default:
             throw new Error('Unsupported network');
     }
@@ -48,9 +48,9 @@ export const getCoinFromKeypath = keypathArray => {
     }
     switch(keypathArray[1]) {
         case 60 + HARDENED:
-            return api.firmware.messages.ETHCoin.ETH;
+            return constants.messages.ETHCoin.ETH;
         case 1 + HARDENED:
-            return api.firmware.messages.ETHCoin.RopstenETH;
+            return constants.messages.ETHCoin.RopstenETH;
         default:
             throw new Error('Invalid keypath');
     }

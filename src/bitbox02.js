@@ -2,7 +2,9 @@ import './bitbox02-api-go.js';
 
 import { getKeypathFromString, getCoinFromKeypath, getCoinFromChainId } from './eth-utils.js';
 
-export const api = bitbox02;
+const api = bitbox02;
+export const constants = bitbox02.constants;
+export const isErrorAbort = bitbox02.IsErrorAbort;
 export const HARDENED = 0x80000000;
 
 function sleep(ms) {
@@ -77,7 +79,7 @@ export class BitBox02API {
             self.socket.binaryType = 'arraybuffer'
             self.socket.onopen = async function (event) {
                 try {
-                    self.fw = api.firmware.New(onWrite);
+                    self.fw = api.New(onWrite);
 
                     // Turn all Async* methods into promises.
                     for (const key in self.firmware().js) {
@@ -87,25 +89,25 @@ export class BitBox02API {
                     }
 
                     self.firmware().SetOnEvent(ev => {
-                        if (ev === api.firmware.Event.StatusChanged && self.firmware()) {
+                        if (ev === constants.Event.StatusChanged && self.firmware()) {
                             setStatusCb(self.firmware().Status());
                         }
-                        if (ev === api.firmware.Event.StatusChanged && self.firmware().Status() === api.firmware.Status.Unpaired) {
+                        if (ev === constants.Event.StatusChanged && self.firmware().Status() === constants.Status.Unpaired) {
                             const [channelHash] = self.firmware().ChannelHash();
                             showPairingCb(channelHash);
                         }
-                        if (ev === api.firmware.Event.AttestationCheckDone) {
+                        if (ev === constants.Event.AttestationCheckDone) {
                             handleAttestationCb(self.firmware().Attestation());
                         }
-                        if (ev === api.firmware.Event.StatusChanged && self.firmware().Status() === api.firmware.Status.RequireFirmwareUpgrade) {
+                        if (ev === constants.Event.StatusChanged && self.firmware().Status() === constants.Status.RequireFirmwareUpgrade) {
                             self.socket.close();
                             reject('Firmware upgrade required');
                         }
-                        if (ev === api.firmware.Event.StatusChanged && self.firmware().Status() === api.firmware.Status.RequireAppUpgrade) {
+                        if (ev === constants.Event.StatusChanged && self.firmware().Status() === constants.Status.RequireAppUpgrade) {
                             self.socket.close();
                             reject('Unsupported firmware');
                         }
-                        if (ev === api.firmware.Event.StatusChanged && self.firmware().Status() === api.firmware.Status.Uninitialized) {
+                        if (ev === constants.Event.StatusChanged && self.firmware().Status() === constants.Status.Uninitialized) {
                             self.socket.close();
                             reject('Uninitialized');
                         }
@@ -113,18 +115,18 @@ export class BitBox02API {
 
                     await self.firmware().js.AsyncInit();
                     switch(self.firmware().Status()) {
-                        case api.firmware.Status.PairingFailed:
+                        case constants.Status.PairingFailed:
                             self.socket.close();
                             throw new Error("Pairing rejected");
-                        case api.firmware.Status.Unpaired:
+                        case constants.Status.Unpaired:
                             await userVerify()
                             await self.firmware().js.AsyncChannelHashVerify(true);
                             break;
-                        case api.firmware.Status.Initialized:
+                        case constants.Status.Initialized:
                             // Pairing skipped.
                             break;
                         default:
-                            throw new Error("Unexpected status: " + self.firmware().Status() + "," + api.firmware.Status.Unpaired);
+                            throw new Error("Unexpected status: " + self.firmware().Status() + "," + constants.Status.Unpaired);
                     }
 
                     resolve();
@@ -144,6 +146,24 @@ export class BitBox02API {
         });
     }
 
+    /**
+     * @param coin Coin to target - `constants.messages.BTCCoin.*`, for example `constants.messages.BTCCoin.BTC`.
+     * @param keypath account-level keypath, for example `getKeypathFromString("m/49'/0'/0'")`.
+     * @param xpubType xpub version - `constants.messages.BTCXPubType.*`, for example `constants.messages.BTCXPubType.YPUB`.
+     * @param display if true, the device device will show the xpub on the screen before returning.
+     * @return the xpub string.
+     */
+    async btcXPub(coin, keypath, xpubType, display) {
+        return this.firmware().js.AsyncBTCXPub(coin, keypath, xpubType, display);
+    }
+
+    /**
+     * Display a single-sig address on the device. The address to be shown in the wallet is usually derived from the xpub (see `btcXPub` and account type.
+     * @param coin Coin to target - `constants.messages.BTCCoin.*`, for example `constants.messages.BTCCoin.BTC`.
+     * @param keypath address-level keypath, for example `getKeypathFromString("m/49'/0'/0'/1/10")`.
+     *                Note: the keypaths are strictly enforced according to bip44, and must match the provided script/address types.
+     * @param simpleType is the address type - `constants.messages.BTCScriptConfig_SimpleType.*`, for example `constants.messages.BTCScriptConfig_SimpleType.P2WPKH_P2SH` for `3...` segwit addresses.
+     */
     async btcDisplayAddressSimple(coin, keypath, simpleType) {
         const display = true;
         return this.firmware().js.AsyncBTCAddressSimple(
@@ -154,6 +174,39 @@ export class BitBox02API {
         );
     }
 
+    /**
+     * Sign a single-sig transaction.
+     * @param coin Coin to target - `constants.messages.BTCCoin.*`, for example `constants.messages.BTCCoin.BTC`.
+     * @param simpleType same as in `btcDisplayAddresssimple`.
+     * @param keypathAccount account-level keypath, for example `getKeypathFromString("m/84'/0'/0'")`.
+     *                       All inputs and changes must be from this account.
+     * @param inputs array of input objects, with each input:
+     *               {
+     *                 "prevOutHash": Uint8Array(32),
+     *                 "prevOutIndex": number,
+     *                 "prevOutValue": string, // satoshis as a decimal string,
+     *                 "sequence": number, // usually 0xFFFFFFFF
+     *                 "keypath": [number], // usually keypathAccount.concat([change, address]),
+     *               }
+     * @param outputs array of output objects, with each output being either regular output or a change output:
+     *                Change outputs:
+     *                {
+     *                  "ours": true,
+     *                  "keypath": [number], // usually keypathAccount.concat([1, <address>]),
+     *                  "value": string, // satoshis as a decimal string,
+     *                }
+     *                Regular outputs:
+     *                {
+     *                  "ours": false,
+     *                  "type": constants.messages.BTCOutputType.P2WSH // e.g. constants.messages.BTCOutputType.P2PKH,
+     *                  // pubkey or script hash. 20 bytes for P2PKH, P2SH, P2WPKH. 32 bytes for P2WSH.
+     *                  "hash": new Uint8Array(20) | new Uint8Array(32)
+     *                  "value": string, // satoshis as a decimal string,
+     *                }
+     * @param version Transaction version, usually 1 or 2.
+     * @param locktime Transaction locktime, usually 0.
+     * @return Array of 64 byte signatures, one per input.
+     */
     async btcSignSimple(
         coin,
         simpleType,
@@ -174,6 +227,63 @@ export class BitBox02API {
     }
 
     /**
+     * Register a multisig account on the device with a user chosen name. If it is already registered, this does nothing.
+     * A multisig account must be registered before it can be used to show multisig addresses or sign multisig transactions.
+     * Note:
+     * Currently, only P2WSH (bech32) multisig accounts on the keypath `m/48'/<coin>'/<account>'/2'` are supported.
+     * @param account account object details:
+     * {
+     *   "coin": constants.messages.BTCCoin, // for example constants.messages.BTCCoin.BTC
+     *   "keypathAccount": [number], // account-level keypath, for example `getKeypathFromString("m/48'/0'/0'/2'")`.
+     *   "threshold": number, // signing threshold, e.g. 2.
+     *   "xpubs": [string], // list of account-level xpubs given in any format. One of them must belong to the connected BitBox02.
+     *   "ourXPubIndex": nmber, // index of the currently connected BitBox02's multisig xpub in the xpubs array, e.g. 0.
+     * }
+     * @param getName: async () => string - If the account is unknown to the device, this function will be called to get an
+     *                 account name from the user. The resulting name must be between 1 and 30 ascii chars.
+     */
+    async btcMaybeRegisterScriptConfig(account, getName) {
+        const isRegistered = await this.firmware().js.AsyncBTCIsScriptConfigRegistered(account);
+        if (!isRegistered) {
+            await this.firmware().js.AsyncBTCRegisterScriptConfig(account, await getName());
+        }
+    }
+
+    /*
+     * Display a multisig address on the device. `btcMaybeRegisterScriptConfig` should be called beforehand.
+     * @param account same as in `btcMaybeRegisterScriptConfig`.
+     * @param keypath address-level keypath from the account, usually `account.keypathAccount.concat([0, address])`.
+     */
+    async btcDisplayAddressMultisig(account, keypath) {
+        const display = true;
+        return this.firmware().js.AsyncBTCAddressMultisig(
+            account,
+            keypath,
+            display,
+        );
+    }
+
+    /*
+     * Sign a multisig transaction. `btcMaybeRegisterScriptConfig` should be called beforehand.
+     * @param account same as in `btcMaybeRegisterScriptConfig`.
+     * Other params and return are the same as in `btcSignSimple`.
+     */
+    async btcSignMultisig(
+        account,
+        inputs,
+        outputs,
+        version,
+        locktime) {
+        return this.firmware().js.AsyncBTCSignMultisig(
+            account,
+            inputs,
+            outputs,
+            version,
+            locktime,
+        );
+    }
+
+    /**
      * @param keypath account keypath in string format
      * Currently only two keypaths are supported:
      * - `m/44'/60'/0'/0` for mainnet and
@@ -186,7 +296,7 @@ export class BitBox02API {
         const xpub = await this.firmware().js.AsyncETHPub(
             coin,
             keypathArray,
-            api.firmware.messages.ETHPubRequest_OutputType.XPUB,
+            constants.messages.ETHPubRequest_OutputType.XPUB,
             false,
             new Uint8Array()
         );
@@ -206,7 +316,7 @@ export class BitBox02API {
         this.firmware().js.AsyncETHPub(
             coin,
             keypathArray,
-            api.firmware.messages.ETHPubRequest_OutputType.ADDRESS,
+            constants.messages.ETHPubRequest_OutputType.ADDRESS,
             true,
             new Uint8Array()
         );
@@ -248,7 +358,7 @@ export class BitBox02API {
             };
             return result;
         } catch (err) {
-            if (api.firmware.IsErrorAbort(err)) {
+            if (api.IsErrorAbort(err)) {
                 throw new Error('User abort');
             } else {
                 throw new Error(err.Message);
@@ -286,7 +396,7 @@ export class BitBox02API {
             };
             return result;
         } catch(err) {
-            if (api.firmware.IsErrorAbort(err)) {
+            if (api.IsErrorAbort(err)) {
                 throw new Error('User abort');
             } else {
                 throw new Error(err.Message);

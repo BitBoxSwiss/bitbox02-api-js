@@ -1,10 +1,11 @@
-import { api, getDevicePath, BitBox02API, getKeypathFromString, HARDENED } from './bitbox02-api.js'
+import { isErrorAbort, constants, getDevicePath, BitBox02API, getKeypathFromString, HARDENED } from './bitbox02-api.js'
 
 function reset() {
     document.getElementById("demo").disabled = false;
     document.getElementById("pairing").style.display = "none";
     document.getElementById("pairingOK").disabled = true;
     document.getElementById("initialized").style.display = "none";
+    document.getElementById("intro").style.display = "flex";
 }
 
 class BitBox02 {
@@ -18,24 +19,18 @@ class BitBox02 {
         document.getElementById("demo").disabled = true;
         try {
             const devicePath = await getDevicePath();
-            this.bitbox02API = new BitBox02API(devicePath);
+            this.api = new BitBox02API(devicePath);
 
-            document.getElementById("close").addEventListener("click", () => {
-                this.bitbox02API.close();
-                reset();
-            });
-
-            await this.bitbox02API.connect(
+            await this.api.connect(
                 pairingCode => {
-                    document.getElementById("pairing").style.display = "block";
+                    document.getElementById("intro").style.display = "none";
+                    document.getElementById("pairing").style.display = "flex";
                     document.getElementById("pairingCode").innerHTML = pairingCode.replace("\n", "<br/>");
                 },
-                () => {
-                    return new Promise(resolve => {
-                        pairingOKButton.disabled = false;
-                        pairingOKButton.addEventListener("click", resolve);
-                    });
-                },
+                () => new Promise(resolve => {
+                    pairingOKButton.disabled = false;
+                    pairingOKButton.addEventListener("click", resolve);
+                }),
                 attestationResult => {
                     console.log("Attestation check:", attestationResult);
                 },
@@ -49,18 +44,18 @@ class BitBox02 {
             reset();
             return;
         }
-        switch (this.bitbox02API.firmware().Product()) {
-            case api.common.Product.BitBox02Multi:
+        switch (this.api.firmware().Product()) {
+            case constants.Product.BitBox02Multi:
                 console.log("This is a BitBox02 Multi");
                 break;
-            case api.common.Product.BitBox02BTCOnly:
+            case constants.Product.BitBox02BTCOnly:
                 console.log("This is a BitBox02 BTC-only");
                 break;
         }
 
         document.getElementById("pairing").style.display = "none";
-        initializedDiv.style.display = "block";
-
+        document.getElementById("intro").style.display = "none";
+        initializedDiv.style.display = "flex";
     }
 }
 
@@ -75,16 +70,22 @@ const runDemo = async () => {
 // Start the demo
 document.getElementById("demo").addEventListener("click", runDemo);
 
+// Close the connection (logout).
+document.getElementById("close").addEventListener("click", () => {
+    device.api.close();
+});
+
+
 // Get ethereum xpub for given keypath
 ethPub.addEventListener("click", async () => {
-    const ethPub = await device.bitbox02API.ethGetRootPubKey("m/44'/60'/0'/0");
+    const ethPub = await device.api.ethGetRootPubKey("m/44'/60'/0'/0");
     alert(ethPub);
 });
 
 // Get ethereum address for given keypath
 // Only displays address on device, does not return. For verification, derive address from xpub
 ethAddr.addEventListener("click", async () => {
-    await device.bitbox02API.ethDisplayAddress("m/44'/60'/0'/0/0");
+    await device.api.ethDisplayAddress("m/44'/60'/0'/0/0");
 });
 
 // Sign ethereum transaction
@@ -102,7 +103,7 @@ ethSign.addEventListener("click", async () => {
         }
     }
     try {
-        const sig = await device.bitbox02API.ethSignTransaction(signingData);
+        const sig = await device.api.ethSignTransaction(signingData);
         console.log(sig);
     } catch(e) {
         alert(e);
@@ -112,7 +113,7 @@ ethSign.addEventListener("click", async () => {
 // Sign "hello world" ethereum message
 ethSignMsg.addEventListener("click", async () => {
     try {
-        const sig = await device.bitbox02API.ethSignMessage({
+        const sig = await device.api.ethSignMessage({
             keypath: "m/44'/60'/0'/0/0",
             // "hello world"
             message: new Uint8Array([104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100])
@@ -125,51 +126,56 @@ ethSignMsg.addEventListener("click", async () => {
 });
 
 document.getElementById("btcAddressSimple").addEventListener("click", async () => {
-    await device.bitbox02API.btcDisplayAddressSimple(
-        api.firmware.messages.BTCCoin.BTC,
+    await device.api.btcDisplayAddressSimple(
+        constants.messages.BTCCoin.BTC,
         getKeypathFromString("m/49'/0'/0'/0/0"),
-        api.firmware.messages.BTCScriptConfig_SimpleType.P2WPKH_P2SH,
+        constants.messages.BTCScriptConfig_SimpleType.P2WPKH_P2SH,
     );
 });
 
-document.getElementById("btcSignSimple").addEventListener("click", async () => {
-    const bip44Account = 0 + HARDENED;
-    const version = 1;
-    const locktime = 0;
+function makeExampleTx(keypathAccount) {
     const inputs = [
         {
             "prevOutHash": new Uint8Array(32).fill(49), // arbitrary constant
             "prevOutIndex": 1,
-            "prevOutValue": 1e8 * 0.60005,
+            "prevOutValue": "60005000", // satoshis as a decimal string
             "sequence": 0xFFFFFFFF,
-            "keypath": [84 + HARDENED, 0 + HARDENED, bip44Account, 0, 0],
+            "keypath": keypathAccount.concat([0, 0]),
         },
         {
             "prevOutHash": new Uint8Array(32).fill(49), // arbitrary constant
             "prevOutIndex": 1,
-            "prevOutValue": 1e8 * 0.60005,
+            "prevOutValue": "60005000", // satoshis as a decimal string
             "sequence": 0xFFFFFFFF,
-            "keypath": [84 + HARDENED, 0 + HARDENED, bip44Account, 0, 1],
+            "keypath": keypathAccount.concat([0, 1]),
         }
     ];
     const outputs = [
         {
             "ours": true, // change
-            "keypath": [84 + HARDENED, 0 + HARDENED, bip44Account, 1, 0],
-            "value": 1e8 * 1,
+            "keypath": keypathAccount.concat([1, 0]),
+            "value": "100000000", // satoshis as a decimal string
         },
         {
             "ours": false,
-            "type": api.firmware.messages.BTCOutputType.P2WSH,
+            "type": constants.messages.BTCOutputType.P2WSH,
             "hash": new Uint8Array(32).fill(49), // arbitrary constant
-            "value": 1e8 * 0.2,
+            "value": "20000000", // satoshis as a decimal string,
         },
     ];
+    const version = 1;
+    const locktime = 0;
+    return { inputs, outputs, version, locktime };
+}
+
+document.getElementById("btcSignSimple").addEventListener("click", async () => {
+    const keypathAccount = getKeypathFromString("m/84'/0'/0'");
+    const { inputs, outputs, version, locktime } = makeExampleTx(keypathAccount);
     try {
-        const signatures = await device.bitbox02API.btcSignSimple(
-            api.firmware.messages.BTCCoin.BTC,
-            api.firmware.messages.BTCScriptConfig_SimpleType.P2WPKH,
-            [84 + HARDENED, 0 + HARDENED, bip44Account],
+        const signatures = await device.api.btcSignSimple(
+            constants.messages.BTCCoin.BTC,
+            constants.messages.BTCScriptConfig_SimpleType.P2WPKH,
+            keypathAccount,
             inputs,
             outputs,
             version,
@@ -177,7 +183,74 @@ document.getElementById("btcSignSimple").addEventListener("click", async () => {
         );
         console.log("Signatures: ", signatures);
     } catch(err) {
-        if (api.firmware.IsErrorAbort(err)) {
+        if (isErrorAbort(err)) {
+            alert("aborted by user");
+        } else {
+            alert(err.Message);
+        }
+    }
+});
+
+async function makeExampleMultisigAccount(keypathAccount) {
+    const coin = constants.messages.BTCCoin.BTC;
+
+    const ourXPub = await device.api.btcXPub(coin, keypathAccount, constants.messages.BTCXPubType.ZPUB, false);
+
+    // One of the xpubs must be ours.
+    // The xpubs can be provided in any version (xpub, ypub, zpub, etc.).
+    const xpubs = [
+        ourXPub,
+        "xpub6FEZ9Bv73h1vnE4TJG4QFj2RPXJhhsPbnXgFyH3ErLvpcZrDcynY65bhWga8PazWHLSLi23PoBhGcLcYW6JRiJ12zXZ9Aop4LbAqsS3gtcy",
+    ];
+
+    const account = {
+        "coin": coin,
+        "keypathAccount": keypathAccount,
+        "threshold": 1,
+        "xpubs": xpubs,
+        "ourXPubIndex": 0,
+    };
+
+    const getName = async () => prompt("Please give a name for the multisig account (max 30 chars)");
+    await device.api.btcMaybeRegisterScriptConfig(account, getName);
+    return account;
+}
+
+document.getElementById("btcAddressMultisig").addEventListener("click", async () => {
+    const keypath = getKeypathFromString("m/48'/0'/0'/2'/0/0");
+    const keypathAccount = keypath.slice(0, keypath.length - 2);
+
+    try {
+        const account = await makeExampleMultisigAccount(keypathAccount);
+        await device.api.btcDisplayAddressMultisig(account, keypath);
+    } catch(err) {
+        if (isErrorAbort(err)) {
+            alert("aborted by user");
+        } else {
+            alert(err.Message);
+        }
+    }
+});
+
+document.getElementById("btcSignMultisig").addEventListener("click", async () => {
+    const coin = constants.messages.BTCCoin.BTC;
+    const keypathAccount = getKeypathFromString("m/48'/0'/0'/2'");
+
+    const account = await makeExampleMultisigAccount(keypathAccount);
+
+    const { inputs, outputs, version, locktime } = makeExampleTx(keypathAccount);
+
+    try {
+        const signatures = await device.api.btcSignMultisig(
+            account,
+            inputs,
+            outputs,
+            version,
+            locktime,
+        );
+        console.log("Signatures: ", signatures);
+    } catch(err) {
+        if (isErrorAbort(err)) {
             alert("aborted by user");
         } else {
             alert(err.Message);
