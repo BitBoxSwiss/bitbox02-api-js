@@ -126,10 +126,10 @@ await BitBox02.ethDisplayAddress(keypath)
 #### Check if product is supported
 To use with Ethereum, the user needs a BB02 Multi and not the Bitcoin Only edition. You can use for the following check:
 ```javascript
-import { api } from 'bitbox02-api';
+import { constants } from 'bitbox02-api';
 
-BitBox02.firmware().Product() === api.common.Product.BitBox02Multi
-BitBox02.firmware().Product() === api.common.Product.BitBox02BTCOnly
+BitBox02.firmware().Product() === constants.Product.BitBox02Multi
+BitBox02.firmware().Product() === constants.Product.BitBox02BTCOnly
 ```
 
 ## Sample integration
