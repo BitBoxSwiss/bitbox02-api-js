@@ -125,6 +125,7 @@ ethSignMsg.addEventListener("click", async () => {
     }
 });
 
+// Display single-sig BTC address on device for verification
 document.getElementById("btcAddressSimple").addEventListener("click", async () => {
     await device.api.btcDisplayAddressSimple(
         constants.messages.BTCCoin.BTC,
@@ -133,6 +134,7 @@ document.getElementById("btcAddressSimple").addEventListener("click", async () =
     );
 });
 
+// Mock sample single-sig BTC transaction
 function makeExampleTx(keypathAccount) {
     const inputs = [
         {
@@ -168,6 +170,7 @@ function makeExampleTx(keypathAccount) {
     return { inputs, outputs, version, locktime };
 }
 
+// Sign single-sig BTC transaction
 document.getElementById("btcSignSimple").addEventListener("click", async () => {
     const keypathAccount = getKeypathFromString("m/84'/0'/0'");
     const { inputs, outputs, version, locktime } = makeExampleTx(keypathAccount);
@@ -191,6 +194,7 @@ document.getElementById("btcSignSimple").addEventListener("click", async () => {
     }
 });
 
+// Mock sample multi-sig BTC transaction
 async function makeExampleMultisigAccount(keypathAccount) {
     const coin = constants.messages.BTCCoin.BTC;
 
@@ -216,6 +220,7 @@ async function makeExampleMultisigAccount(keypathAccount) {
     return account;
 }
 
+// Display single-sig BTC address on device for verification
 document.getElementById("btcAddressMultisig").addEventListener("click", async () => {
     const keypath = getKeypathFromString("m/48'/0'/0'/2'/0/0");
     const keypathAccount = keypath.slice(0, keypath.length - 2);
@@ -232,6 +237,7 @@ document.getElementById("btcAddressMultisig").addEventListener("click", async ()
     }
 });
 
+// Sign multi-sig BTC transaction
 document.getElementById("btcSignMultisig").addEventListener("click", async () => {
     const coin = constants.messages.BTCCoin.BTC;
     const keypathAccount = getKeypathFromString("m/48'/0'/0'/2'");
