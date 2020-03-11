@@ -49,6 +49,18 @@ function promisify(f) {
     };
 }
 
+const setOutputDefaults = outputs =>  {
+    // Workaround for gopherjs: all fields must be set for Go to be able to parse the structure,
+    // even though some fields are optional some of the time.
+    for (let i = 0; i < outputs.length; i++) {
+        outputs[i] = Object.assign({
+            type: 0,
+            hash: new Uint8Array(0),
+            keypath: [],
+        }, outputs[i]);
+    }
+}
+
 export class BitBox02API {
     constructor(devicePath)  {
         this.devicePath = devicePath;
@@ -215,6 +227,7 @@ export class BitBox02API {
         outputs,
         version,
         locktime) {
+        setOutputDefaults(outputs);
         return this.firmware().js.AsyncBTCSignSimple(
             coin,
             simpleType,
@@ -274,6 +287,7 @@ export class BitBox02API {
         outputs,
         version,
         locktime) {
+        setOutputDefaults(outputs);
         return this.firmware().js.AsyncBTCSignMultisig(
             account,
             inputs,

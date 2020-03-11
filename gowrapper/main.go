@@ -17,7 +17,6 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/json"
 	"errors"
 	"log"
 	"math/big"
@@ -217,89 +216,73 @@ func (device *jsDevice) AsyncBTCAddressSimple(
 	}()
 }
 
-// ugly hack because I don't know how to internalize structs automatically.
-func convertViaJSON(in interface{}, out interface{}) error {
-	jsonBytes, err := json.Marshal(in)
-	if err != nil {
-		return err
-	}
-	return json.Unmarshal(jsonBytes, out)
-}
-
-type uint64AsDecimalString uint64
-
-func (u *uint64AsDecimalString) UnmarshalJSON(bytes []byte) error {
-	var str string
-	if err := json.Unmarshal(bytes, &str); err != nil {
-		return err
-	}
-	int, ok := new(big.Int).SetString(str, 10)
-	if !ok {
-		return errors.New("expected decimal string as value")
-	}
-	*u = uint64AsDecimalString(int.Uint64())
-	return nil
-}
-
 type btcSignInputRequest struct {
-	PrevOutHash  []byte                `json:"prevOutHash"`
-	PrevOutIndex uint32                `json:"prevOutIndex"`
-	PrevOutValue uint64AsDecimalString `json:"prevOutValue"`
-	Sequence     uint32                `json:"sequence"`
-	Keypath      []uint32              `json:"keypath"`
+	*js.Object
+	PrevOutHash  []byte   `js:"prevOutHash"`
+	PrevOutIndex uint32   `js:"prevOutIndex"`
+	PrevOutValue string   `js:"prevOutValue"`
+	Sequence     uint32   `js:"sequence"`
+	Keypath      []uint32 `js:"keypath"`
 }
 
-func (input *btcSignInputRequest) toInput() *messages.BTCSignInputRequest {
+func (input *btcSignInputRequest) toInput() (*messages.BTCSignInputRequest, error) {
+	int, ok := new(big.Int).SetString(input.PrevOutValue, 10)
+	if !ok {
+		return nil, errors.New("expected decimal string as value")
+	}
 	return &messages.BTCSignInputRequest{
 		PrevOutHash:  input.PrevOutHash,
 		PrevOutIndex: input.PrevOutIndex,
-		PrevOutValue: uint64(input.PrevOutValue),
+		PrevOutValue: int.Uint64(),
 		Sequence:     input.Sequence,
 		Keypath:      input.Keypath,
-	}
+	}, nil
 }
 
 type btcSignOutputRequest struct {
-	Ours    bool                   `json:"ours"`
-	Type    messages.BTCOutputType `json:"type"`
-	Value   uint64AsDecimalString  `json:"value"`
-	Hash    []byte                 `json:"hash"`
-	Keypath []uint32               `json:"keypath"`
+	*js.Object
+	Ours    bool                   `js:"ours"`
+	Type    messages.BTCOutputType `js:"type"`
+	Value   string                 `js:"value"`
+	Hash    []byte                 `js:"hash"`
+	Keypath []uint32               `js:"keypath"`
 }
 
-func (output *btcSignOutputRequest) toOutput() *messages.BTCSignOutputRequest {
+func (output *btcSignOutputRequest) toOutput() (*messages.BTCSignOutputRequest, error) {
+	int, ok := new(big.Int).SetString(output.Value, 10)
+	if !ok {
+		return nil, errors.New("expected decimal string as value")
+	}
 	return &messages.BTCSignOutputRequest{
 		Ours:    output.Ours,
 		Type:    output.Type,
-		Value:   uint64(output.Value),
+		Value:   int.Uint64(),
 		Hash:    output.Hash,
 		Keypath: output.Keypath,
-	}
+	}, nil
 }
 
 func convertInputsAndOutputs(
-	inputs []map[string]interface{}, // matches []*btcSignInputRequest
-	outputs []map[string]interface{}, // matches []*btcSignOutputRequest,
+	inputs []*btcSignInputRequest,
+	outputs []*btcSignOutputRequest,
 ) ([]*messages.BTCSignInputRequest, []*messages.BTCSignOutputRequest, error) {
-	// Seems there is no easy way to convert js objects...
-
-	var theInputs []*btcSignInputRequest
-	if err := convertViaJSON(inputs, &theInputs); err != nil {
-		return nil, nil, err
+	theInputs := make([]*messages.BTCSignInputRequest, len(inputs))
+	for i, input := range inputs {
+		var err error
+		theInputs[i], err = input.toInput()
+		if err != nil {
+			return nil, nil, err
+		}
 	}
-	theInputs2 := make([]*messages.BTCSignInputRequest, len(theInputs))
-	for i, input := range theInputs {
-		theInputs2[i] = input.toInput()
+	theOutputs := make([]*messages.BTCSignOutputRequest, len(outputs))
+	for i, output := range outputs {
+		var err error
+		theOutputs[i], err = output.toOutput()
+		if err != nil {
+			return nil, nil, err
+		}
 	}
-	var theOutputs []*btcSignOutputRequest
-	if err := convertViaJSON(outputs, &theOutputs); err != nil {
-		return nil, nil, err
-	}
-	theOutputs2 := make([]*messages.BTCSignOutputRequest, len(theOutputs))
-	for i, output := range theOutputs {
-		theOutputs2[i] = output.toOutput()
-	}
-	return theInputs2, theOutputs2, nil
+	return theInputs, theOutputs, nil
 }
 
 func (device *jsDevice) AsyncBTCSignSimple(
@@ -307,8 +290,8 @@ func (device *jsDevice) AsyncBTCSignSimple(
 	coin messages.BTCCoin,
 	simpleType messages.BTCScriptConfig_SimpleType,
 	keypathAccount []uint32,
-	inputs []map[string]interface{}, // matches []*btcSignInputRequest
-	outputs []map[string]interface{}, // matches []*btcSignOutputRequest
+	inputs []*btcSignInputRequest,
+	outputs []*btcSignOutputRequest,
 	version uint32,
 	locktime uint32,
 ) {
@@ -407,8 +390,8 @@ func (device *jsDevice) AsyncBTCAddressMultisig(
 func (device *jsDevice) AsyncBTCSignMultisig(
 	done func([][]byte, *jsError),
 	scriptConfig *btcMultisigConfig,
-	inputs []map[string]interface{}, // matches []*btcSignInputRequest
-	outputs []map[string]interface{}, // matches []*btcSignOutputRequest
+	inputs []*btcSignInputRequest,
+	outputs []*btcSignOutputRequest,
 	version uint32,
 	locktime uint32,
 ) {
