@@ -332,11 +332,12 @@ func (device *jsDevice) AsyncBTCSignSimple(
 }
 
 type btcMultisigConfig struct {
-	Coin           messages.BTCCoin `json:"coin"`
-	KeypathAccount []uint32         `json:"keypathAccount"`
-	Threshold      uint32           `json:"threshold"`
-	XPubs          []string         `json:"xpubs"`
-	OurXPubIndex   uint32           `json:"ourXPubIndex"`
+	*js.Object
+	Coin           messages.BTCCoin `js:"coin"`
+	KeypathAccount []uint32         `js:"keypathAccount"`
+	Threshold      uint32           `js:"threshold"`
+	XPubs          []string         `js:"xpubs"`
+	OurXPubIndex   uint32           `js:"ourXPubIndex"`
 }
 
 func (config *btcMultisigConfig) toScriptConfig() (*messages.BTCScriptConfig, error) {
@@ -349,65 +350,55 @@ func (config *btcMultisigConfig) toScriptConfig() (*messages.BTCScriptConfig, er
 
 func (device *jsDevice) AsyncBTCIsScriptConfigRegistered(
 	done func(bool, *jsError),
-	scriptConfig map[string]interface{}, // maches *btcMultisigconfig
+	scriptConfig *btcMultisigConfig,
 ) {
 	go func() {
-		var conf btcMultisigConfig
-		if err := convertViaJSON(scriptConfig, &conf); err != nil {
-			done(false, toJSError(err))
-			return
-		}
-		scriptConfig, err := conf.toScriptConfig()
+		conf, err := scriptConfig.toScriptConfig()
 		if err != nil {
 			done(false, toJSError(err))
 			return
 		}
 		result, err := device.device.BTCIsScriptConfigRegistered(
-			conf.Coin, scriptConfig, conf.KeypathAccount)
+			scriptConfig.Coin, conf, scriptConfig.KeypathAccount)
 		done(result, toJSError(err))
 	}()
 }
 
 func (device *jsDevice) AsyncBTCRegisterScriptConfig(
 	done func(*jsError),
-	scriptConfig map[string]interface{}, // maches *btcMultisigconfig,
+	scriptConfig *btcMultisigConfig,
 	name string) {
 	go func() {
-		var conf btcMultisigConfig
-		if err := convertViaJSON(scriptConfig, &conf); err != nil {
-			done(toJSError(err))
-			return
-		}
-		scriptConfig, err := conf.toScriptConfig()
+		conf, err := scriptConfig.toScriptConfig()
 		if err != nil {
 			done(toJSError(err))
 			return
 		}
-		err = device.device.BTCRegisterScriptConfig(conf.Coin, scriptConfig, conf.KeypathAccount, name)
+		err = device.device.BTCRegisterScriptConfig(
+			scriptConfig.Coin,
+			conf,
+			scriptConfig.KeypathAccount,
+			name,
+		)
 		done(toJSError(err))
 	}()
 }
 
 func (device *jsDevice) AsyncBTCAddressMultisig(
 	done func(string, *jsError),
-	scriptConfig map[string]interface{}, // maches *btcMultisigconfig,
+	scriptConfig *btcMultisigConfig,
 	keypath []uint32,
 	display bool) {
 	go func() {
-		var conf btcMultisigConfig
-		if err := convertViaJSON(scriptConfig, &conf); err != nil {
-			done("", toJSError(err))
-			return
-		}
-		scriptConfig, err := conf.toScriptConfig()
+		conf, err := scriptConfig.toScriptConfig()
 		if err != nil {
 			done("", toJSError(err))
 			return
 		}
 		address, err := device.device.BTCAddress(
-			conf.Coin,
+			scriptConfig.Coin,
 			keypath,
-			scriptConfig,
+			conf,
 			display)
 		done(address, toJSError(err))
 	}()
@@ -415,19 +406,14 @@ func (device *jsDevice) AsyncBTCAddressMultisig(
 
 func (device *jsDevice) AsyncBTCSignMultisig(
 	done func([][]byte, *jsError),
-	scriptConfig map[string]interface{}, // maches *btcMultisigconfig,
+	scriptConfig *btcMultisigConfig,
 	inputs []map[string]interface{}, // matches []*btcSignInputRequest
 	outputs []map[string]interface{}, // matches []*btcSignOutputRequest
 	version uint32,
 	locktime uint32,
 ) {
 	go func() {
-		var conf btcMultisigConfig
-		if err := convertViaJSON(scriptConfig, &conf); err != nil {
-			done(nil, toJSError(err))
-			return
-		}
-		scriptConfig, err := conf.toScriptConfig()
+		conf, err := scriptConfig.toScriptConfig()
 		if err != nil {
 			done(nil, toJSError(err))
 			return
@@ -439,9 +425,9 @@ func (device *jsDevice) AsyncBTCSignMultisig(
 			return
 		}
 		signatures, err := device.device.BTCSign(
-			conf.Coin,
-			scriptConfig,
-			conf.KeypathAccount,
+			scriptConfig.Coin,
+			conf,
+			scriptConfig.KeypathAccount,
 			theInputs,
 			theOutputs,
 			version,
