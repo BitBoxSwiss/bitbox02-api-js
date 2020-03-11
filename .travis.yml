@@ -1,0 +1,14 @@
+dist: bionic
+language: node_js
+node_js:
+    - 12
+sudo : false
+
+cache: yarn
+
+env:
+    - NODE_OPTIONS=--max_old_space_size=3000
+
+script:
+    - yarn
+    - yarn test
