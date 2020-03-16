@@ -204,7 +204,7 @@ async function makeExampleMultisigAccount(keypathAccount) {
     // The xpubs can be provided in any version (xpub, ypub, zpub, etc.).
     const xpubs = [
         ourXPub,
-        "xpub6FEZ9Bv73h1vnE4TJG4QFj2RPXJhhsPbnXgFyH3ErLvpcZrDcynY65bhWga8PazWHLSLi23PoBhGcLcYW6JRiJ12zXZ9Aop4LbAqsS3gtcy",
+        "Zpub75oAskzNv1fFuPc4ue6dVyZETFdroU4Bw2NNTL6Yz8WzLx3athVwRKmuMoSmwqXFL5jw5ZEdbinsW5TSEiHQTFUuZg4Pk2v2mma1ERpHWgq",
     ];
 
     const account = {
