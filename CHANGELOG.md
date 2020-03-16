@@ -4,6 +4,7 @@
 - api no longer exported (treated as internal).
 - add btcXPub, btcMaybeRegisterScriptConfig, btcDisplayAddressMultisig, btcSignMultisig api calls.
 - bitobx02-api-go: updated to 49d314b148cccb193e26b5c154044ed7eb819384 (v7.0.0 compatibility)
+- Add Jest framework and Travis CI for testing and add unit tests for util functions
 
 # 0.3.0
 - Update from Go API: https://github.com/digitalbitbox/bitbox02-api-go/commit/7817ceb1fccc7276f17a6a468221258cbd4d5bac

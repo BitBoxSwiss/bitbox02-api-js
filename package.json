@@ -4,7 +4,7 @@
   "description": "BitBox02 JavaScript library",
   "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -21,5 +21,9 @@
   "bugs": {
     "url": "https://github.com/digitalbitbox/bitbox02-api-js/issues"
   },
-  "homepage": "https://github.com/digitalbitbox/bitbox02-api-js#readme"
+  "homepage": "https://github.com/digitalbitbox/bitbox02-api-js#readme",
+  "devDependencies": {
+    "babel-plugin-transform-es2015-modules-commonjs": "^6.26.2",
+    "jest": "^25.1.0"
+  }
 }
