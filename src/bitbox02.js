@@ -16,13 +16,21 @@ export async function getDevicePath() {
     const attempts = 10;
     for (let i=0; i<attempts; i++){
         let response;
+        let errorMessage;
         try {
             response = await fetch("http://localhost:8178/api/v1/devices", {
                 method: 'GET',
                 headers: {},
-            });
+            })
+            if (!response.ok && response.status === 403) {
+                errorMessage = 'Origin not whitelisted';
+                throw new Error();        
+            } else if (!response.ok) {
+                errorMessage = 'Unexpected';
+                throw new Error();
+            }
         } catch {
-            throw new Error('BitBoxBridge not found');
+            throw new Error(errorMessage ? errorMessage : 'BitBoxBridge not found');
         }
         const devices = (await response.json()).devices;
         if (devices.length !== 1) {
