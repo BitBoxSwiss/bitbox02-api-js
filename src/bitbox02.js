@@ -24,7 +24,7 @@ export async function getDevicePath() {
             })
             if (!response.ok && response.status === 403) {
                 errorMessage = 'Origin not whitelisted';
-                throw new Error();        
+                throw new Error();
             } else if (!response.ok) {
                 errorMessage = 'Unexpected';
                 throw new Error();
@@ -167,6 +167,7 @@ export class BitBox02API {
     }
 
     /**
+     * btcXPub: see https://github.com/digitalbitbox/bitbox02-api-js/blob/master/docs/methods.md#btcxpub
      * @param coin Coin to target - `constants.messages.BTCCoin.*`, for example `constants.messages.BTCCoin.BTC`.
      * @param keypath account-level keypath, for example `getKeypathFromString("m/49'/0'/0'")`.
      * @param xpubType xpub version - `constants.messages.BTCXPubType.*`, for example `constants.messages.BTCXPubType.YPUB`.
@@ -178,10 +179,9 @@ export class BitBox02API {
     }
 
     /**
-     * Display a single-sig address on the device. The address to be shown in the wallet is usually derived from the xpub (see `btcXPub` and account type.
+     * btcDisplayAddressSimple: see https://github.com/digitalbitbox/bitbox02-api-js/blob/master/docs/methods.md#btcdisplayaddresssimple
      * @param coin Coin to target - `constants.messages.BTCCoin.*`, for example `constants.messages.BTCCoin.BTC`.
      * @param keypath address-level keypath, for example `getKeypathFromString("m/49'/0'/0'/1/10")`.
-     *                Note: the keypaths are strictly enforced according to bip44, and must match the provided script/address types.
      * @param simpleType is the address type - `constants.messages.BTCScriptConfig_SimpleType.*`, for example `constants.messages.BTCScriptConfig_SimpleType.P2WPKH_P2SH` for `3...` segwit addresses.
      */
     async btcDisplayAddressSimple(coin, keypath, simpleType) {
@@ -195,34 +195,12 @@ export class BitBox02API {
     }
 
     /**
-     * Sign a single-sig transaction.
+     * btcSignSimple: see https://github.com/digitalbitbox/bitbox02-api-js/blob/master/docs/methods.md#btcsignsimple
      * @param coin Coin to target - `constants.messages.BTCCoin.*`, for example `constants.messages.BTCCoin.BTC`.
      * @param simpleType same as in `btcDisplayAddresssimple`.
      * @param keypathAccount account-level keypath, for example `getKeypathFromString("m/84'/0'/0'")`.
-     *                       All inputs and changes must be from this account.
-     * @param inputs array of input objects, with each input:
-     *               {
-     *                 "prevOutHash": Uint8Array(32),
-     *                 "prevOutIndex": number,
-     *                 "prevOutValue": string, // satoshis as a decimal string,
-     *                 "sequence": number, // usually 0xFFFFFFFF
-     *                 "keypath": [number], // usually keypathAccount.concat([change, address]),
-     *               }
-     * @param outputs array of output objects, with each output being either regular output or a change output:
-     *                Change outputs:
-     *                {
-     *                  "ours": true,
-     *                  "keypath": [number], // usually keypathAccount.concat([1, <address>]),
-     *                  "value": string, // satoshis as a decimal string,
-     *                }
-     *                Regular outputs:
-     *                {
-     *                  "ours": false,
-     *                  "type": constants.messages.BTCOutputType.P2WSH // e.g. constants.messages.BTCOutputType.P2PKH,
-     *                  // pubkey or script hash. 20 bytes for P2PKH, P2SH, P2WPKH. 32 bytes for P2WSH.
-     *                  "hash": new Uint8Array(20) | new Uint8Array(32)
-     *                  "value": string, // satoshis as a decimal string,
-     *                }
+     * @param inputs array of input objects
+     * @param outputs array of output objects, with each output being either regular output or a change output
      * @param version Transaction version, usually 1 or 2.
      * @param locktime Transaction locktime, usually 0.
      * @return Array of 64 byte signatures, one per input.
@@ -248,18 +226,8 @@ export class BitBox02API {
     }
 
     /**
-     * Register a multisig account on the device with a user chosen name. If it is already registered, this does nothing.
-     * A multisig account must be registered before it can be used to show multisig addresses or sign multisig transactions.
-     * Note:
-     * Currently, only P2WSH (bech32) multisig accounts on the keypath `m/48'/<coin>'/<account>'/2'` are supported.
-     * @param account account object details:
-     * {
-     *   "coin": constants.messages.BTCCoin, // for example constants.messages.BTCCoin.BTC
-     *   "keypathAccount": [number], // account-level keypath, for example `getKeypathFromString("m/48'/0'/0'/2'")`.
-     *   "threshold": number, // signing threshold, e.g. 2.
-     *   "xpubs": [string], // list of account-level xpubs given in any format. One of them must belong to the connected BitBox02.
-     *   "ourXPubIndex": nmber, // index of the currently connected BitBox02's multisig xpub in the xpubs array, e.g. 0.
-     * }
+     * btcMaybeRegisterScriptConfig: see https://github.com/digitalbitbox/bitbox02-api-js/blob/master/docs/methods.md#btcmayberegisterscriptconfig
+     * @param account account object details
      * @param getName: async () => string - If the account is unknown to the device, this function will be called to get an
      *                 account name from the user. The resulting name must be between 1 and 30 ascii chars.
      */
@@ -271,7 +239,7 @@ export class BitBox02API {
     }
 
     /*
-     * Display a multisig address on the device. `btcMaybeRegisterScriptConfig` should be called beforehand.
+     * btcDisplayAddressMultisig: see https://github.com/digitalbitbox/bitbox02-api-js/blob/master/docs/methods.md#btcdisplayaddressmultisig
      * @param account same as in `btcMaybeRegisterScriptConfig`.
      * @param keypath address-level keypath from the account, usually `account.keypathAccount.concat([0, address])`.
      */
@@ -285,7 +253,7 @@ export class BitBox02API {
     }
 
     /*
-     * Sign a multisig transaction. `btcMaybeRegisterScriptConfig` should be called beforehand.
+     * btcSignMultisig: see https://github.com/digitalbitbox/bitbox02-api-js/blob/master/docs/methods.md#btcsignmultisig
      * @param account same as in `btcMaybeRegisterScriptConfig`.
      * Other params and return are the same as in `btcSignSimple`.
      */
@@ -306,10 +274,8 @@ export class BitBox02API {
     }
 
     /**
+     * ethGetRootPubKey: see https://github.com/digitalbitbox/bitbox02-api-js/blob/master/docs/methods.md#ethgetrootpubkey
      * @param keypath account keypath in string format
-     * Currently only two keypaths are supported:
-     * - `m/44'/60'/0'/0` for mainnet and
-     * - `m/44'/1'/0'/0`  for Rinkeby and Ropsten testnets
      * @returns string; ethereum extended public key
      */
     async ethGetRootPubKey(keypath) {
@@ -326,9 +292,8 @@ export class BitBox02API {
     };
 
     /**
+     * ethDisplayAddress: see https://github.com/digitalbitbox/bitbox02-api-js/blob/master/docs/methods.md#ethdisplayaddress
      * @param keypath string, e.g. m/44'/60'/0'/0/0 for the first mainnet account
-     * Displays the address of the provided ethereum account on device screen
-     * Only displays address on device, does not return. For verification, derive address from xpub
      */
     async ethDisplayAddress(keypath) {
         const keypathArray = getKeypathFromString(keypath);
@@ -345,20 +310,9 @@ export class BitBox02API {
     };
 
     /**
-     * Signs an ethereum transaction on device
-     * @param signingData Object;
-     * signingData = {
-     *     keypath, // string, e.g. m/44'/60'/0'/0/0
-     *     chainId, // number, currently 1, 3 or 4 for Mainnet, Ropsten and Rinkeby respectively
-     *     tx       // Object, either as provided by the `Transaction` type from `ethereumjs` library
-     *              // or including `nonce`, `gasPrice`, `gasLimit`, `to`, `value`, and `data` as byte arrays
-     * }
+     * ethSignTransaction: see https://github.com/digitalbitbox/bitbox02-api-js/blob/master/docs/methods.md#ethsigntransaction
+     * @param signingData Object
      * @returns Object; result with the signature bytes r, s, v
-     * result = {
-     *     r: Uint8Array(32)
-     *     s: Uint8Array(32)
-     *     v: Uint8Array(1)
-     * }
      */
     async ethSignTransaction(signingData) {
         try {
@@ -388,19 +342,10 @@ export class BitBox02API {
         }
     };
 
-    /** @param msgData is an object including the keypath and the message as bytes:
-     *
-     * const msgData = {
-     *     keypath    // string, e.g. m/44'/60'/0'/0/0 for the first mainnet account
-     *     message    // Buffer/Uint8Array
-     * }
-     *
+    /**
+     * ethSignMessage: see https://github.com/digitalbitbox/bitbox02-api-js/blob/master/docs/methods.md#ethsignmessage
+     * @param msgData is an object including the keypath and the message as bytes
      * @returns Object; result with the signature bytes r, s, v
-     * result = {
-     *     r: Uint8Array(32)
-     *     s: Uint8Array(32)
-     *     v: Uint8Array(1)
-     * }
      */
     async ethSignMessage(msgData) {
         try {
