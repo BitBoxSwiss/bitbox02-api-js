@@ -226,8 +226,6 @@ button:disabled {
 
 #initialized {
     min-height: 50vh;
-    margin: 0 25%;
-    justify-content: space-around;
 }
 
 .pairingCode {
@@ -288,4 +286,50 @@ button:disabled {
   background-size: cover;
   background-repeat: no-repeat;
   background: linear-gradient(180deg, #F5F5F5, #FFFFFF, #F5F5F5);
+}
+
+.panel {
+  padding: var(--spaceLarge) !important;
+  border: solid 1px var(--lightGray);
+  border-radius: 2px;
+  overflow: auto;
+}
+
+p {
+  font-size: var(--defaultFontSize);
+  font-weight: 300;
+  line-height: 1.4;
+  text-align: left;
+}
+
+ul {
+  margin: 0;
+  padding-left: var(--spaceMedium);
+}
+
+ul li {
+  font-weight: 300;
+  font-size: var(--defaultFontSize);
+  line-height: 1.4;
+}
+
+ul.inline li { margin: 0 var(--spaceXLarge) var(--spaceSmall) 0; }
+
+ul.list li::before {
+  position: relative;
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  top: 1px;
+  content: url(../assets/decals/list-item.svg);
+  left: calc(var(--spaceMedium) * -1);
+  margin-right: -8px;
+}
+
+.buttonsContainer {
+  margin: 25px 0 25px 0;
+}
+
+summary {
+  outline: none;
 }
