@@ -8,7 +8,7 @@ We recommend lazy-loading it only when necessary.
 
 ## Local development
 
-To compile the library using GopherJS, run the following commands to run the provided [Dockerfile](Dockerfile).
+To compile the library using GopherJS, run the following commands:
 
 ```sh
 $ make dockerinit
@@ -23,10 +23,11 @@ $ make servedemo
 
 ## Integration
 
-To enable communication from the local browser to the BitBox02, the user needs to have the [BitBoxBridge](https://github.com/digitalbitbox/bitbox-bridge) installed.
+To enable communication from the browser to the BitBox02, the [BitBoxBridge](https://github.com/digitalbitbox/bitbox-bridge) needs to be installed and running.
 
 When integrating the BitBox02 into your application, your domain needs to be whitelisted in the BitBoxBridge.
 To do so, please submit a Pull Request or an Issue in the [bitbox-bridge](https://github.com/digitalbitbox/bitbox-bridge) repository.
+Localhost is already whitelisted, so you can develop locally.
 
 The BitBox02 Javascript library is available as NPM package [bitbox02-api](https://www.npmjs.com/package/bitbox02-api).
 

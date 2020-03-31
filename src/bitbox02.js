@@ -1,3 +1,19 @@
+// Copyright 2019 Shift Cryptosecurity AG
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+// For full method documentation see: https://github.com/digitalbitbox/bitbox02-api-js/blob/master/docs/methods.md
+
 import './bitbox02-api-go.js';
 
 import { getKeypathFromString, getCoinFromKeypath, getCoinFromChainId } from './utils.js';
@@ -166,8 +182,12 @@ export class BitBox02API {
         });
     }
 
+
+    // --- Bitcoin methods ---
+
     /**
-     * btcXPub: see https://github.com/digitalbitbox/bitbox02-api-js/blob/master/docs/methods.md#btcxpub
+     * # Get a Bitcoin xPub key for a given coin and derivation path.
+     *
      * @param coin Coin to target - `constants.messages.BTCCoin.*`, for example `constants.messages.BTCCoin.BTC`.
      * @param keypath account-level keypath, for example `getKeypathFromString("m/49'/0'/0'")`.
      * @param xpubType xpub version - `constants.messages.BTCXPubType.*`, for example `constants.messages.BTCXPubType.YPUB`.
@@ -179,7 +199,9 @@ export class BitBox02API {
     }
 
     /**
-     * btcDisplayAddressSimple: see https://github.com/digitalbitbox/bitbox02-api-js/blob/master/docs/methods.md#btcdisplayaddresssimple
+     * # Display a single-sig address on the device. The address to be shown in the wallet is usually derived 
+     * # from the xpub (see `btcXPub` and account type.
+     *
      * @param coin Coin to target - `constants.messages.BTCCoin.*`, for example `constants.messages.BTCCoin.BTC`.
      * @param keypath address-level keypath, for example `getKeypathFromString("m/49'/0'/0'/1/10")`.
      * @param simpleType is the address type - `constants.messages.BTCScriptConfig_SimpleType.*`, for example `constants.messages.BTCScriptConfig_SimpleType.P2WPKH_P2SH` for `3...` segwit addresses.
@@ -195,7 +217,8 @@ export class BitBox02API {
     }
 
     /**
-     * btcSignSimple: see https://github.com/digitalbitbox/bitbox02-api-js/blob/master/docs/methods.md#btcsignsimple
+     * # Sign a Bitcoin single-sig transaction.
+     *
      * @param coin Coin to target - `constants.messages.BTCCoin.*`, for example `constants.messages.BTCCoin.BTC`.
      * @param simpleType same as in `btcDisplayAddresssimple`.
      * @param keypathAccount account-level keypath, for example `getKeypathFromString("m/84'/0'/0'")`.
@@ -226,8 +249,19 @@ export class BitBox02API {
     }
 
     /**
-     * btcMaybeRegisterScriptConfig: see https://github.com/digitalbitbox/bitbox02-api-js/blob/master/docs/methods.md#btcmayberegisterscriptconfig
-     * @param account account object details
+     * # Register a multisig account on the device with a user chosen name. If it is already registered, this does nothing.
+     * # A multisig account must be registered before it can be used to show multisig addresses or sign multisig transactions.
+     * # Note:
+     * # Currently, only P2WSH (bech32) multisig accounts on the keypath `m/48'/<coin>'/<account>'/2'` are supported.
+     *
+     * @param account account object details:
+     * {
+     *   "coin": constants.messages.BTCCoin, // for example constants.messages.BTCCoin.BTC
+     *   "keypathAccount": [number], // account-level keypath, for example `getKeypathFromString("m/48'/0'/0'/2'")`.
+     *   "threshold": number, // signing threshold, e.g. 2.
+     *   "xpubs": [string], // list of account-level xpubs given in any format. One of them must belong to the connected BitBox02.
+     *   "ourXPubIndex": nmber, // index of the currently connected BitBox02's multisig xpub in the xpubs array, e.g. 0.
+     * }
      * @param getName: async () => string - If the account is unknown to the device, this function will be called to get an
      *                 account name from the user. The resulting name must be between 1 and 30 ascii chars.
      */
@@ -238,8 +272,9 @@ export class BitBox02API {
         }
     }
 
-    /*
-     * btcDisplayAddressMultisig: see https://github.com/digitalbitbox/bitbox02-api-js/blob/master/docs/methods.md#btcdisplayaddressmultisig
+    /**
+     * # Display a multisig address on the device. `btcMaybeRegisterScriptConfig` should be called beforehand.
+     *
      * @param account same as in `btcMaybeRegisterScriptConfig`.
      * @param keypath address-level keypath from the account, usually `account.keypathAccount.concat([0, address])`.
      */
@@ -252,8 +287,9 @@ export class BitBox02API {
         );
     }
 
-    /*
-     * btcSignMultisig: see https://github.com/digitalbitbox/bitbox02-api-js/blob/master/docs/methods.md#btcsignmultisig
+    /**
+     * # Sign a multisig transaction. `btcMaybeRegisterScriptConfig` should be called beforehand.
+     *
      * @param account same as in `btcMaybeRegisterScriptConfig`.
      * Other params and return are the same as in `btcSignSimple`.
      */
@@ -273,8 +309,14 @@ export class BitBox02API {
         );
     }
 
+
+    // --- End Bitcoin methods ---
+
+    // --- Ethereum methods ---
+
     /**
-     * ethGetRootPubKey: see https://github.com/digitalbitbox/bitbox02-api-js/blob/master/docs/methods.md#ethgetrootpubkey
+     * # Get Ethereum xPub key for a given coin and derivation path.
+     *
      * @param keypath account keypath in string format
      * @returns string; ethereum extended public key
      */
@@ -292,7 +334,8 @@ export class BitBox02API {
     };
 
     /**
-     * ethDisplayAddress: see https://github.com/digitalbitbox/bitbox02-api-js/blob/master/docs/methods.md#ethdisplayaddress
+     * # Display an Ethereum address on the device screen for verification.
+     *
      * @param keypath string, e.g. m/44'/60'/0'/0/0 for the first mainnet account
      */
     async ethDisplayAddress(keypath) {
@@ -310,7 +353,10 @@ export class BitBox02API {
     };
 
     /**
-     * ethSignTransaction: see https://github.com/digitalbitbox/bitbox02-api-js/blob/master/docs/methods.md#ethsigntransaction
+     * # Signs an Ethereum transaction on the device.
+     *
+     * We recommend using the [`Transaction` type](https://github.com/ethereumjs/ethereumjs-tx/blob/master/src/transaction.ts) provided by the `ethereumjs` library.\
+     *
      * @param signingData Object
      * @returns Object; result with the signature bytes r, s, v
      */
@@ -343,7 +389,8 @@ export class BitBox02API {
     };
 
     /**
-     * ethSignMessage: see https://github.com/digitalbitbox/bitbox02-api-js/blob/master/docs/methods.md#ethsignmessage
+     * # Sign an Ethereum message on the device.
+     *
      * @param msgData is an object including the keypath and the message as bytes
      * @returns Object; result with the signature bytes r, s, v
      */
@@ -370,6 +417,8 @@ export class BitBox02API {
             }
         }
     }
+
+    // --- End Ethereum methods ---
 
     /**
      * @returns True if the connection has been opened and successfully established.
