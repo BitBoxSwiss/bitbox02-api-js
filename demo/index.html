@@ -7,7 +7,7 @@
         <link rel="stylesheet" href="style.css">
         <script type="module" src="demo.js"></script>
     </head>
-    <body>
+    <body class="gray-gradient">
         <div id="nav" class="nav-container">
             <nav class="nav-content col-xs-12">
                 <div class="content-width flex flex-between flex-items-center">
@@ -18,7 +18,7 @@
                 </div>
             </nav>
         </div>
-        <div id="intro" class="introContainer gray-gradient">
+        <div id="intro" class="introContainer">
             <h4 class="lab-light m-bottom-medium">
                 The <a href="https://github.com/digitalbitbox/bitbox-bridge/releases/">BitBoxBridge</a> must
                 be running, and one <strong>BitBox</strong>02 plugged in.
@@ -48,10 +48,10 @@
             </div>
             <div>
                 <h3>Ethereum</h3>
-                <button class="primary" id="ethAddr" autocomplete="off">Show address</button>
-                <button class="primary" id="ethPub" autocomplete="off">Get xpub</button>
-                <button class="primary" id="ethSign" autocomplete="off">Sign tx</button>
-                <button class="primary" id="ethSignMsg" autocomplete="off">Sign message</button>
+                <button class="primary bb02-multi" disabled id="ethAddr" autocomplete="off">Show address</button>
+                <button class="primary bb02-multi" disabled id="ethPub" autocomplete="off">Get xpub</button>
+                <button class="primary bb02-multi" disabled id="ethSign" autocomplete="off">Sign tx</button>
+                <button class="primary bb02-multi" disabled id="ethSignMsg" autocomplete="off">Sign message</button>
             </div>
             <div>
                 <button class="secondary" id="close" autocomplete="off">Close</button>
