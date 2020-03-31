@@ -47,6 +47,10 @@ class BitBox02 {
         switch (this.api.firmware().Product()) {
             case constants.Product.BitBox02Multi:
                 console.log("This is a BitBox02 Multi");
+                let elements = document.getElementsByClassName("bb02-multi");
+                for (let i = 0; i < elements.length; i++) {
+                    elements[i].disabled = false;
+                }
                 break;
             case constants.Product.BitBox02BTCOnly:
                 console.log("This is a BitBox02 BTC-only");

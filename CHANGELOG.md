@@ -1,3 +1,8 @@
+# 0.4.1
+- Updated BitBoxSandbox demo
+   - Add methods documentation in docs/methods.md
+   - Sandbox UI improvements
+
 # 0.4.0
 - Changed api.firmware.* to constants.* (all constants)
 - Changed api.firmware.isErrorAbort to isErrorAbort (direct export)

@@ -91,6 +91,8 @@ body.lock {
   position: fixed;
 }
 
+h1 { font-family: 'labMedium', sans-serif; }
+
 h3 {
     margin-bottom: var(--spaceMedium);
 }
@@ -224,8 +226,6 @@ button:disabled {
 
 #initialized {
     min-height: 50vh;
-    margin: 0 25%;
-    justify-content: space-around;
 }
 
 .pairingCode {
@@ -235,4 +235,101 @@ button:disabled {
     font-size: 20px;
     padding: 30px 0;
     margin-bottom: 0;
-  }
+}
+
+.content-width {
+  margin: 0 auto;
+  max-width: var(--contentWidth);
+  width: 100%;
+}
+
+.nav-container {
+  z-index: 20;
+  width: 100%;
+  transition: background-color ease-in 0.2s;
+  background-color: var(--white);
+}
+
+.nav-container.sticky {
+  margin-bottom: 51px;
+}
+
+.nav-container.solid {
+  background-color: var(--white);
+  box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.2);
+}
+
+.nav-content {
+  height: var(--headerHeight);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.nav-content .logo {
+  height: var(--logoHeight);
+}
+
+.nav-content .logo .logoImage {
+  height: var(--logoHeight);
+  color: var(--black);
+  width: auto !important;
+}
+
+.solid .nav-content .logo .logoImage {
+  color: black;
+}
+
+/* GRAY (DARK) SECTION SPECIFICATIONS */
+.gray-gradient {
+  background-size: cover;
+  background-repeat: no-repeat;
+  background: linear-gradient(180deg, #F5F5F5, #FFFFFF, #F5F5F5);
+}
+
+.panel {
+  padding: var(--spaceLarge) !important;
+  border: solid 1px var(--lightGray);
+  border-radius: 2px;
+  overflow: auto;
+}
+
+p {
+  font-size: var(--defaultFontSize);
+  font-weight: 300;
+  line-height: 1.4;
+  text-align: left;
+}
+
+ul {
+  margin: 0;
+  padding-left: var(--spaceMedium);
+}
+
+ul li {
+  font-weight: 300;
+  font-size: var(--defaultFontSize);
+  line-height: 1.4;
+}
+
+ul.inline li { margin: 0 var(--spaceXLarge) var(--spaceSmall) 0; }
+
+ul.list li::before {
+  position: relative;
+  display: inline-block;
+  width: 18px;
+  height: 18px;
+  top: 1px;
+  content: url(../assets/decals/list-item.svg);
+  left: calc(var(--spaceMedium) * -1);
+  margin-right: -8px;
+}
+
+.buttonsContainer {
+  margin: 25px 0 25px 0;
+}
+
+summary {
+  outline: none;
+}
