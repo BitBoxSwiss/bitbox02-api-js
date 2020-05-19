@@ -1,3 +1,6 @@
+# 0.5.0
+- bitbox02-api-go: updated to f9fe88be0a9b8866533a20d01d264fe42a085fd9 (v8.0.0 compatibility)
+
 # 0.4.1
 - Updated BitBoxSandbox demo
    - Add methods documentation in docs/methods.md
@@ -8,7 +11,7 @@
 - Changed api.firmware.isErrorAbort to isErrorAbort (direct export)
 - api no longer exported (treated as internal).
 - add btcXPub, btcMaybeRegisterScriptConfig, btcDisplayAddressMultisig, btcSignMultisig api calls.
-- bitobx02-api-go: updated to 49d314b148cccb193e26b5c154044ed7eb819384 (v7.0.0 compatibility)
+- bitbox02-api-go: updated to 49d314b148cccb193e26b5c154044ed7eb819384 (v7.0.0 compatibility)
 - Add Jest framework and Travis CI for testing and add unit tests for util functions
 - Improve error handling with regards to CORS headers when connecting to the device. We can now correctly identify when the origin is not whitelisted based on the response from the bridge
 
