@@ -1,25 +1,16 @@
+[![BitBox02 Logo](docs/assets/bitbox02.png)](https://github.com/digitalbitbox/bitbox02-api-js/blob/master/docs/methods.md)
+
 # BitBox02 JavaScript library
 
 The JavaScript library is compiled from
 [bitbox02-api-go](https://github.com/digitalbitbox/bitbox02-api-go) using GopherJS.
 
-Given that it contains the full client implentation compiled from Go, the library is quite large (~3MB).
+Given that it contains the full client implementation compiled from Go, the library is quite large (~3MB).
 We recommend lazy-loading it only when necessary.
 
-## Local development
+## BitBox02
 
-To compile the library using GopherJS, run the following commands:
-
-```sh
-$ make dockerinit
-$ make dockercompile
-```
-
-To simply run the demo sandbox implementation, run the following command and visit <http://localhost:8000>.
-
-```sh
-$ make servedemo
-```
+The BitBox02 is a hardware wallet made by [Shift Crypto](https://shiftcrypto.ch) that simplifies secure handling of crypto coins through storing private keys and signing transactions.
 
 ## Integration
 
@@ -183,4 +174,19 @@ await device.init()
 // Now you can call any of the supported API methods documented above e.g.:
 const ethPub = await device.api.ethGetRootPubKey("m/44'/60'/0'/0");
 
+```
+
+## Local development
+
+To compile the library using GopherJS, run the following commands:
+
+```sh
+$ make dockerinit
+$ make dockercompile
+```
+
+To simply run the demo sandbox implementation, run the following command and visit <http://localhost:8000>.
+
+```sh
+$ make servedemo
 ```
