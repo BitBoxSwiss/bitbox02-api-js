@@ -1,4 +1,6 @@
-# Methods
+![BitBox02 Logo](assets/bitbox02.png)
+
+# BitBox02 API - Methods
 
 The [BitBox02 JavaScript library](https://github.com/digitalbitbox/bitbox02-api-js) supports the methods documented below.
 
