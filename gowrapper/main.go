@@ -225,17 +225,19 @@ type btcSignInputRequest struct {
 	Keypath      []uint32 `js:"keypath"`
 }
 
-func (input *btcSignInputRequest) toInput() (*messages.BTCSignInputRequest, error) {
+func (input *btcSignInputRequest) toInput() (*firmware.BTCTxInput, error) {
 	int, ok := new(big.Int).SetString(input.PrevOutValue, 10)
 	if !ok {
 		return nil, errors.New("expected decimal string as value")
 	}
-	return &messages.BTCSignInputRequest{
-		PrevOutHash:  input.PrevOutHash,
-		PrevOutIndex: input.PrevOutIndex,
-		PrevOutValue: int.Uint64(),
-		Sequence:     input.Sequence,
-		Keypath:      input.Keypath,
+	return &firmware.BTCTxInput{
+		Input: &messages.BTCSignInputRequest{
+			PrevOutHash:  input.PrevOutHash,
+			PrevOutIndex: input.PrevOutIndex,
+			PrevOutValue: int.Uint64(),
+			Sequence:     input.Sequence,
+			Keypath:      input.Keypath,
+		},
 	}, nil
 }
 
@@ -265,8 +267,8 @@ func (output *btcSignOutputRequest) toOutput() (*messages.BTCSignOutputRequest, 
 func convertInputsAndOutputs(
 	inputs []*btcSignInputRequest,
 	outputs []*btcSignOutputRequest,
-) ([]*messages.BTCSignInputRequest, []*messages.BTCSignOutputRequest, error) {
-	theInputs := make([]*messages.BTCSignInputRequest, len(inputs))
+) ([]*firmware.BTCTxInput, []*messages.BTCSignOutputRequest, error) {
+	theInputs := make([]*firmware.BTCTxInput, len(inputs))
 	for i, input := range inputs {
 		var err error
 		theInputs[i], err = input.toInput()
@@ -303,12 +305,16 @@ func (device *jsDevice) AsyncBTCSignSimple(
 		}
 		signatures, err := device.device.BTCSign(
 			coin,
-			firmware.NewBTCScriptConfigSimple(simpleType),
-			keypathAccount,
-			theInputs,
-			theOutputs,
-			version,
-			locktime,
+			[]*messages.BTCScriptConfigWithKeypath{{
+				ScriptConfig: firmware.NewBTCScriptConfigSimple(simpleType),
+				Keypath:      keypathAccount,
+			}},
+			&firmware.BTCTx{
+				Version:  version,
+				Inputs:   theInputs,
+				Outputs:  theOutputs,
+				Locktime: locktime,
+			},
 		)
 		done(signatures, toJSError(err))
 	}()
@@ -409,12 +415,16 @@ func (device *jsDevice) AsyncBTCSignMultisig(
 		}
 		signatures, err := device.device.BTCSign(
 			scriptConfig.Coin,
-			conf,
-			scriptConfig.KeypathAccount,
-			theInputs,
-			theOutputs,
-			version,
-			locktime,
+			[]*messages.BTCScriptConfigWithKeypath{{
+				ScriptConfig: conf,
+				Keypath:      scriptConfig.KeypathAccount,
+			}},
+			&firmware.BTCTx{
+				Version:  version,
+				Inputs:   theInputs,
+				Outputs:  theOutputs,
+				Locktime: locktime,
+			},
 		)
 		done(signatures, toJSError(err))
 	}()
