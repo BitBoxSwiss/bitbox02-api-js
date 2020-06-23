@@ -216,13 +216,36 @@ func (device *jsDevice) AsyncBTCAddressSimple(
 	}()
 }
 
+type btcPrevTxInputRequest struct {
+	*js.Object
+	PrevOutHash     []byte `js:"prevOutHash"`
+	PrevOutIndex    uint32 `js:"prevOutIndex"`
+	SignatureScript []byte `js:"signatureScript"`
+	Sequence        uint32 `js:"sequence"`
+}
+
+type btcPrevTxOutputRequest struct {
+	*js.Object
+	Value        string `js:"value"`
+	PubkeyScript []byte `js:"pubkeyScript"`
+}
+
+type btcPrevTx struct {
+	*js.Object
+	Version  uint32                   `js:"version"`
+	Inputs   []btcPrevTxInputRequest  `js:"inputs"`
+	Outputs  []btcPrevTxOutputRequest `js:"outputs"`
+	Locktime uint32                   `js:"locktime"`
+}
+
 type btcSignInputRequest struct {
 	*js.Object
-	PrevOutHash  []byte   `js:"prevOutHash"`
-	PrevOutIndex uint32   `js:"prevOutIndex"`
-	PrevOutValue string   `js:"prevOutValue"`
-	Sequence     uint32   `js:"sequence"`
-	Keypath      []uint32 `js:"keypath"`
+	PrevOutHash  []byte    `js:"prevOutHash"`
+	PrevOutIndex uint32    `js:"prevOutIndex"`
+	PrevOutValue string    `js:"prevOutValue"`
+	Sequence     uint32    `js:"sequence"`
+	Keypath      []uint32  `js:"keypath"`
+	PrevTx       btcPrevTx `js:"prevTx"`
 }
 
 func (input *btcSignInputRequest) toInput() (*firmware.BTCTxInput, error) {
@@ -230,13 +253,41 @@ func (input *btcSignInputRequest) toInput() (*firmware.BTCTxInput, error) {
 	if !ok {
 		return nil, errors.New("expected decimal string as value")
 	}
+	prevTx := input.PrevTx
+	prevInputs := make([]*messages.BTCPrevTxInputRequest, len(prevTx.Inputs))
+	for i, input := range prevTx.Inputs {
+		prevInputs[i] = &messages.BTCPrevTxInputRequest{
+			PrevOutHash:     input.PrevOutHash,
+			PrevOutIndex:    input.PrevOutIndex,
+			SignatureScript: input.SignatureScript,
+			Sequence:        input.Sequence,
+		}
+	}
+	prevOutputs := make([]*messages.BTCPrevTxOutputRequest, len(prevTx.Outputs))
+	for i, output := range prevTx.Outputs {
+		value, ok := new(big.Int).SetString(output.Value, 10)
+		if !ok {
+			return nil, errors.New("expected decimal string as value")
+		}
+		prevOutputs[i] = &messages.BTCPrevTxOutputRequest{
+			Value:        value.Uint64(),
+			PubkeyScript: output.PubkeyScript,
+		}
+	}
 	return &firmware.BTCTxInput{
 		Input: &messages.BTCSignInputRequest{
-			PrevOutHash:  input.PrevOutHash,
-			PrevOutIndex: input.PrevOutIndex,
-			PrevOutValue: int.Uint64(),
-			Sequence:     input.Sequence,
-			Keypath:      input.Keypath,
+			PrevOutHash:       input.PrevOutHash,
+			PrevOutIndex:      input.PrevOutIndex,
+			PrevOutValue:      int.Uint64(),
+			Sequence:          input.Sequence,
+			Keypath:           input.Keypath,
+			ScriptConfigIndex: 0,
+		},
+		PrevTx: &firmware.BTCPrevTx{
+			Version:  prevTx.Version,
+			Inputs:   prevInputs,
+			Outputs:  prevOutputs,
+			Locktime: prevTx.Locktime,
 		},
 	}, nil
 }

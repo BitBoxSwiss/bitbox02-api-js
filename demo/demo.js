@@ -142,18 +142,50 @@ document.getElementById("btcAddressSimple").addEventListener("click", async () =
 function makeExampleTx(keypathAccount) {
     const inputs = [
         {
-            "prevOutHash": new Uint8Array(32).fill(49), // arbitrary constant
+            "prevOutHash": Uint8Array.from([0xc5, 0x8b, 0x7e, 0x3f, 0x12, 0x00, 0xe0, 0xc0, 0xec, 0x9a, 0x5e, 0x81, 0xe9, 0x25, 0xba, 0xfa, 0xce, 0x2c, 0xc1, 0xd4, 0x71, 0x55, 0x14, 0xf2, 0xd8, 0x20, 0x5b, 0xe2, 0x50, 0x8b, 0x48, 0xee]),
             "prevOutIndex": 1,
             "prevOutValue": "60005000", // satoshis as a decimal string
             "sequence": 0xFFFFFFFF,
             "keypath": keypathAccount.concat([0, 0]),
+            "prevTx": {
+                "version": 1,
+                "locktime": 0,
+                "inputs": [
+                    {
+                        "prevOutHash": new Uint8Array(32).fill(49), // arbitrary constant,
+                        "prevOutIndex": 0,
+                        "signatureScript": new TextEncoder().encode("some signature script"),
+                        "sequence": 0xFFFFFFFF,
+                    }
+                ],
+                "outputs": [{
+                    "value": "60005000",
+                    "pubkeyScript": new TextEncoder().encode("some pubkey script"),
+                }],
+            },
         },
         {
-            "prevOutHash": new Uint8Array(32).fill(49), // arbitrary constant
+            "prevOutHash": Uint8Array.from([0xc5, 0x8b, 0x7e, 0x3f, 0x12, 0x00, 0xe0, 0xc0, 0xec, 0x9a, 0x5e, 0x81, 0xe9, 0x25, 0xba, 0xfa, 0xce, 0x2c, 0xc1, 0xd4, 0x71, 0x55, 0x14, 0xf2, 0xd8, 0x20, 0x5b, 0xe2, 0x50, 0x8b, 0x48, 0xee]),
             "prevOutIndex": 1,
             "prevOutValue": "60005000", // satoshis as a decimal string
             "sequence": 0xFFFFFFFF,
             "keypath": keypathAccount.concat([0, 1]),
+            "prevTx": {
+                "version": 1,
+                "locktime": 0,
+                "inputs": [
+                    {
+                        "prevOutHash": new Uint8Array(32).fill(49), // arbitrary constant,
+                        "prevOutIndex": 0,
+                        "signatureScript": new TextEncoder().encode("some signature script"),
+                        "sequence": 0xFFFFFFFF,
+                    }
+                ],
+                "outputs": [{
+                    "value": "60005000",
+                    "pubkeyScript": new TextEncoder().encode("some pubkey script"),
+                }],
+            },
         }
     ];
     const outputs = [
@@ -190,6 +222,7 @@ document.getElementById("btcSignSimple").addEventListener("click", async () => {
         );
         console.log("Signatures: ", signatures);
     } catch(err) {
+        console.log(err);
         if (isErrorAbort(err)) {
             alert("aborted by user");
         } else {

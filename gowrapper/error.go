@@ -16,7 +16,6 @@ package main
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/digitalbitbox/bitbox02-api-go/api/firmware"
 	"github.com/digitalbitbox/bitbox02-api-go/util/errp"
@@ -53,7 +52,6 @@ func fromJSError(jsError map[string]interface{}) error {
 		return nil
 	}
 	msg := jsError["Message"].(string)
-	fmt.Println(jsError)
 	switch jsError["ErrorType"] {
 	case errorTypeFirmware:
 		return firmware.NewError(int32(jsError["Code"].(float64)), msg)
