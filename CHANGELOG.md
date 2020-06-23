@@ -1,3 +1,6 @@
+# 0.6.0
+- bitbox02-api-go: updated to 753a8f6ca53ee056dcbf6e629c5335096ae116fb (v9.0.0 compatibility)
+
 # 0.5.0
 - bitbox02-api-go: updated to f9fe88be0a9b8866533a20d01d264fe42a085fd9 (v8.0.0 compatibility)
 
