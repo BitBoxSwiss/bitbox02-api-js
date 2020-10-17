@@ -30,8 +30,8 @@ import (
 //go:generate sh -c "protoc --proto_path=messages/ --go_out='import_path=messages,paths=source_relative:messages' messages/*.proto"
 
 var (
-	lowestSupportedFirmwareVersion                   = semver.NewSemVer(8, 0, 0)
-	lowestSupportedFirmwareVersionBTCOnly            = semver.NewSemVer(8, 0, 0)
+	lowestSupportedFirmwareVersion                   = semver.NewSemVer(9, 0, 0)
+	lowestSupportedFirmwareVersionBTCOnly            = semver.NewSemVer(9, 0, 0)
 	lowestSupportedFirmwareVersionBitBoxBaseStandard = semver.NewSemVer(4, 3, 0)
 	lowestNonSupportedFirmwareVersion                = semver.NewSemVer(10, 0, 0)
 )
@@ -90,6 +90,14 @@ type Device struct {
 	channelHashAppVerified    bool
 	channelHashDeviceVerified bool
 	sendCipher, receiveCipher *noise.CipherState
+	// encrypting (decrypting) increments the cipherstate nonce, and has to be in sync with the
+	// state nonce in the BitBox02.
+	//
+	// We have to make sure that if there are concurrent queries, the incrementing of the local
+	// nonces must match the incrementing of the device nonces, so the decryption works. Avoid the
+	// situation where we Encrypt() locally twice, and send the queries out of order, which will
+	// result in a failed decryption on the device.
+	queryLock sync.Mutex
 
 	status Status
 
