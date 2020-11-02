@@ -1,3 +1,7 @@
+# 0.8.0
+- bitbox02-api-go: updated to 3cdcbc6489771e54fdfa18a205416ab1eee291cb
+- Added btcSignMessage()
+
 # 0.7.0:
 - bitbox02-api-go: updated to f23403837ec161298c08a2e5286bc62f043c3c48
 
