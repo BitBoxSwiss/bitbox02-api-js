@@ -1,5 +1,15 @@
 import { isErrorAbort, constants, getDevicePath, BitBox02API, getKeypathFromString, HARDENED } from './bitbox02-api.js'
 
+// data: Uint8Array.
+function toBase64(data) {
+    return window.btoa(String.fromCharCode.apply(null, data));
+}
+
+// data: Uint8Array.
+function toHex(data) {
+    return [...data].map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
 function reset() {
     document.getElementById("demo").disabled = false;
     document.getElementById("pairing").style.display = "none";
@@ -221,6 +231,33 @@ document.getElementById("btcSignSimple").addEventListener("click", async () => {
             locktime,
         );
         console.log("Signatures: ", signatures);
+    } catch(err) {
+        console.log(err);
+        if (isErrorAbort(err)) {
+            alert("aborted by user");
+        } else {
+            alert(err.Message);
+        }
+    }
+});
+
+// Sign single-sig BTC transaction
+document.getElementById("btcSignMsg").addEventListener("click", async () => {
+    try {
+        const result = await device.api.btcSignMessage(
+            constants.messages.BTCCoin.BTC,
+            constants.messages.BTCScriptConfig_SimpleType.P2WPKH,
+            getKeypathFromString("m/84'/0'/0'/0/0"),
+            // "hello world"
+            new Uint8Array([104, 101, 108, 108, 111, 32, 119, 111, 114, 108, 100]),
+        );
+        alert([
+            "Signature:",
+            toHex(result.signature),
+            "Signature (Electrum):" ,
+            toBase64(result.electrumSignature),
+        ].join("\n"));
+        console.log(result);
     } catch(err) {
         console.log(err);
         if (isErrorAbort(err)) {
