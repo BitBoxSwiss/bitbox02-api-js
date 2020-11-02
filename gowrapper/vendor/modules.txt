@@ -2,7 +2,7 @@
 github.com/btcsuite/btcd/btcec
 # github.com/btcsuite/btcutil v0.0.0-20190425235716-9e5f4b9a998d
 github.com/btcsuite/btcutil/base58
-# github.com/digitalbitbox/bitbox02-api-go v0.0.0-20201012131351-f23403837ec1
+# github.com/digitalbitbox/bitbox02-api-go v0.0.0-20201102142455-3cdcbc648977
 ## explicit
 github.com/digitalbitbox/bitbox02-api-go/api/common
 github.com/digitalbitbox/bitbox02-api-go/api/firmware
