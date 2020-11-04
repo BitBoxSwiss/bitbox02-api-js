@@ -199,7 +199,7 @@ export class BitBox02API {
     }
 
     /**
-     * # Display a single-sig address on the device. The address to be shown in the wallet is usually derived 
+     * # Display a single-sig address on the device. The address to be shown in the wallet is usually derived
      * # from the xpub (see `btcXPub` and account type.
      *
      * @param coin Coin to target - `constants.messages.BTCCoin.*`, for example `constants.messages.BTCCoin.BTC`.
@@ -220,7 +220,7 @@ export class BitBox02API {
      * # Sign a single-sig transaction.
      *
      * @param coin Coin to target - `constants.messages.BTCCoin.*`, for example `constants.messages.BTCCoin.BTC`.
-     * @param simpleType same as in `btcDisplayAddresssimple`.
+     * @param simpleType same as in `btcDisplayAddressSimple`.
      * @param keypathAccount account-level keypath, for example `getKeypathFromString("m/84'/0'/0'")`.
      * @param inputs array of input objects
      *     {
@@ -266,6 +266,32 @@ export class BitBox02API {
             outputs,
             version,
             locktime,
+        );
+    }
+
+    /**
+     * # Sign a Bitcoin message on the device.
+     * @param coin Coin to target - `constants.messages.BTCCoin.*`. Currenty must be `constants.messages.BTCCoin.BTC`.
+     * @param simpleType same as in `btcDisplayAddressSimple`.
+     * @param keypath address-level keypath, for example `getKeypathFromString("m/49'/0'/0'/0/0")`.
+     * @param message Buffer/Uint8Array
+     * @returns Object
+     *     {
+     *         signature: Uint8Array(64)
+     *         recID: number
+     *         electrumSignature: Uint8Array(65)
+     *     }
+     */
+    async btcSignMessage(
+        coin,
+        simpleType,
+        keypath,
+        message) {
+        return this.firmware().js.AsyncBTCSignMessage(
+            coin,
+            simpleType,
+            keypath,
+            message,
         );
     }
 

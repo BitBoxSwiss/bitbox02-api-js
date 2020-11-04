@@ -482,6 +482,29 @@ func (device *jsDevice) AsyncBTCSignMultisig(
 	}()
 }
 
+func (device *jsDevice) AsyncBTCSignMessage(
+	done func(map[string]interface{}, *jsError),
+	coin messages.BTCCoin,
+	simpleType messages.BTCScriptConfig_SimpleType,
+	keypath []uint32,
+	message []byte) {
+	go func() {
+		sig, recID, electrumSig65, err := device.device.BTCSignMessage(
+			coin,
+			&messages.BTCScriptConfigWithKeypath{
+				ScriptConfig: firmware.NewBTCScriptConfigSimple(simpleType),
+				Keypath:      keypath,
+			},
+			message,
+		)
+		done(map[string]interface{}{
+			"signature":         sig,
+			"recID":             recID,
+			"electrumSignature": electrumSig65,
+		}, toJSError(err))
+	}()
+}
+
 func (device *jsDevice) AsyncETHPub(
 	done func(string, *jsError),
 	coin messages.ETHCoin,
