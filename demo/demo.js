@@ -141,11 +141,12 @@ ethSignMsg.addEventListener("click", async () => {
 
 // Display single-sig BTC address on device for verification
 document.getElementById("btcAddressSimple").addEventListener("click", async () => {
-    await device.api.btcDisplayAddressSimple(
+    const address = await device.api.btcDisplayAddressSimple(
         constants.messages.BTCCoin.BTC,
         getKeypathFromString("m/49'/0'/0'/0/0"),
         constants.messages.BTCScriptConfig_SimpleType.P2WPKH_P2SH,
     );
+    alert("btcDisplayAddressSimple returned:\n" + address);
 });
 
 // Mock sample single-sig BTC transaction
