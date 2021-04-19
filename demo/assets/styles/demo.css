@@ -1,6 +1,5 @@
 :root {
     --headerHeight: 72px;
-    --logoHeight: 28px;
     --heroHeight: 600px;
     --pointSize: 12px;
     --heightDifference: calc(100vw / 9);
@@ -46,30 +45,30 @@
 
 @font-face {
     font-family: 'labLight';
-    src: url('../assets/fonts/LabGrotesque-Light.otf'),
-         url('../assets/fonts/LabGrotesque-Light.woff') format('woff'),
-         url('../assets/fonts/LabGrotesque-Light.woff2') format('woff2');
+    src: url('../fonts/LabGrotesque-Light.woff2') format('woff2'),
+    url('../fonts/LabGrotesque-Light.woff') format('woff'),
+    url('../fonts/LabGrotesque-Light.otf');
 }
   
   @font-face {
     font-family: 'labMedium';
-    src: url('../assets/fonts/LabGrotesque-Medium.otf'),
-         url('../assets/fonts/LabGrotesque-Medium.woff') format('woff'),
-         url('../assets/fonts/LabGrotesque-Medium.woff2') format('woff2');
+    src: url('../fonts/LabGrotesque-Medium.woff2') format('woff2'),
+         url('../fonts/LabGrotesque-Medium.woff') format('woff'),
+         url('../fonts/LabGrotesque-Medium.otf');
 }
   
   @font-face {
     font-family: 'labRegular';
-    src: url('../assets/fonts/LabGrotesque-Regular.otf') format('otf'),
-         url('../assets/fonts/LabGrotesque-Regular.woff') format('woff'),
-         url('../assets/fonts/LabGrotesque-Regular.woff2') format('woff2');
+    src: url('../fonts/LabGrotesque-Regular.woff2') format('woff2'),
+         url('../fonts/LabGrotesque-Regular.woff') format('woff'),
+         url('../fonts/LabGrotesque-Regular.otf') format('otf');
 }
   
   @font-face {
     font-family: 'labBold';
-    src: url('../assets/fonts/LabGrotesque-Bold.otf') format('otf'),
-         url('../assets/fonts/LabGrotesque-Bold.woff') format('woff'),
-         url('../assets/fonts/LabGrotesque-Bold.woff2') format('woff2');
+    src: url('../fonts/LabGrotesque-Bold.woff2') format('woff2'),
+         url('../fonts/LabGrotesque-Bold.woff') format('woff'),
+         url('../fonts/LabGrotesque-Bold.otf') format('otf');
 }
 
 * { box-sizing: border-box; }
@@ -267,20 +266,6 @@ button:disabled {
   align-items: center;
 }
 
-.nav-content .logo {
-  height: var(--logoHeight);
-}
-
-.nav-content .logo .logoImage {
-  height: var(--logoHeight);
-  color: var(--black);
-  width: auto !important;
-}
-
-.solid .nav-content .logo .logoImage {
-  color: black;
-}
-
 /* GRAY (DARK) SECTION SPECIFICATIONS */
 .gray-gradient {
   background-size: cover;
@@ -321,7 +306,6 @@ ul.list li::before {
   width: 18px;
   height: 18px;
   top: 1px;
-  content: url(../assets/decals/list-item.svg);
   left: calc(var(--spaceMedium) * -1);
   margin-right: -8px;
 }
