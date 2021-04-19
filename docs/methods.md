@@ -28,7 +28,7 @@ const xPub = await BitBox02.btcXPub(coin, keypath, xpubType, display);
 ### btcDisplayAddressSimple
 
 Display a Bitcoin single-sig address on the device.
-Return the address after users confirmation or throw "aborted by the user" error.
+Return a promise with the address after users confirmation or throw "aborted by the user" error.
 The address to be shown in the wallet is usually derived from the xpub (see `btcXPub`) and account type.
 
 ```javascript
@@ -37,7 +37,8 @@ The address to be shown in the wallet is usually derived from the xpub (see `btc
  * @param keypath address-level keypath, for example `getKeypathFromString("m/49'/0'/0'/1/10")`.
  *                Note: the keypaths are strictly enforced according to bip44, and must match the provided script/address types.
  * @param simpleType is the address type - `constants.messages.BTCScriptConfig_SimpleType.*`, for example `constants.messages.BTCScriptConfig_SimpleType.P2WPKH_P2SH` for `3...` segwit addresses.
- * @return address string or aborted error
+ * @param display wheter to display the address on the device for user confirmation, default true.
+ * @return promise with address string or reject with aborted error
  */
 const address = await BitBox02.btcDisplayAddressSimple(coin, keypath, simpleType);
 ```

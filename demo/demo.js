@@ -140,13 +140,28 @@ ethSignMsg.addEventListener("click", async () => {
 });
 
 // Display single-sig BTC address on device for verification
-document.getElementById("btcAddressSimple").addEventListener("click", async () => {
+const simpleBtn = document.getElementById("btcAddressSimple");
+simpleBtn.addEventListener("click", async () => {
     const address = await device.api.btcDisplayAddressSimple(
         constants.messages.BTCCoin.BTC,
         getKeypathFromString("m/49'/0'/0'/0/0"),
         constants.messages.BTCScriptConfig_SimpleType.P2WPKH_P2SH,
+        false,
     );
-    alert("btcDisplayAddressSimple returned:\n" + address);
+    simpleBtn.textContent = "Confirm the following address on the BitBox:\n" + address;
+    simpleBtn.className = "btn btn-warning";
+    try {
+        const addressConfirmed = await device.api.btcDisplayAddressSimple(
+            constants.messages.BTCCoin.BTC,
+            getKeypathFromString("m/49'/0'/0'/0/0"),
+            constants.messages.BTCScriptConfig_SimpleType.P2WPKH_P2SH,
+        );
+        simpleBtn.textContent = "Success!:\n" + addressConfirmed;
+        simpleBtn.className = "btn btn-success";
+    } catch (e) {
+        simpleBtn.textContent = JSON.stringify(e);
+        simpleBtn.className = "btn btn-danger";
+    }
 });
 
 // Mock sample single-sig BTC transaction
