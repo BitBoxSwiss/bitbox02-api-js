@@ -385,20 +385,22 @@ export class BitBox02API {
     };
 
     /**
-     * # Display an Ethereum address on the device screen for verification.
+     * Display an Ethereum address on the device screen for verification.
      *
      * @param keypath string, e.g. m/44'/60'/0'/0/0 for the first mainnet account
+     * @param display wheter to display the address on the device for user confirmation, default true.
+     * @returns promise with the ETH address or reject with aborted error
      */
-    async ethDisplayAddress(keypath) {
+    async ethDisplayAddress(keypath, display = true) {
         const keypathArray = getKeypathFromString(keypath);
         // FIXME: see def of `getCoinFromPath()`, since we use the same keypath for Ropsten and Rinkeby,
         // the title for Rinkeby addresses will show 'Ropsten' instead
         const coin = getCoinFromKeypath(keypathArray);
-        this.firmware().js.AsyncETHPub(
+        return this.firmware().js.AsyncETHPub(
             coin,
             keypathArray,
             constants.messages.ETHPubRequest_OutputType.ADDRESS,
-            true,
+            display,
             new Uint8Array()
         );
     };

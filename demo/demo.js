@@ -98,8 +98,19 @@ ethPub.addEventListener("click", async () => {
 
 // Get ethereum address for given keypath
 // Only displays address on device, does not return. For verification, derive address from xpub
-ethAddr.addEventListener("click", async () => {
-    await device.api.ethDisplayAddress("m/44'/60'/0'/0/0");
+const ethAddrBtn = document.querySelector("#ethAddr");
+ethAddrBtn.addEventListener("click", async () => {
+    const address = await device.api.ethDisplayAddress("m/44'/60'/0'/0/0", false);
+    ethAddrBtn.textContent = "Confirm the following address on the BitBox:\n" + address;
+    ethAddrBtn.className = "btn btn-warning";
+    try {
+        const addressConfirmed = await device.api.ethDisplayAddress("m/44'/60'/0'/0/0");
+        ethAddrBtn.textContent = "Success!:\n" + addressConfirmed;
+        ethAddrBtn.className = "btn btn-success";
+    } catch (e) {
+        ethAddrBtn.textContent = JSON.stringify(e);
+        ethAddrBtn.className = "btn btn-danger";
+    }
 });
 
 // Sign ethereum transaction
