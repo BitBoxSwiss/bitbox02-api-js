@@ -271,7 +271,7 @@ export class BitBox02API {
     }
 
     /**
-     * # Sign a Bitcoin message on the device.
+     * Sign a Bitcoin message on the device.
      * @param coin Coin to target - `constants.messages.BTCCoin.*`. Currenty must be `constants.messages.BTCCoin.BTC`.
      * @param simpleType same as in `btcDisplayAddressSimple`.
      * @param keypath address-level keypath, for example `getKeypathFromString("m/49'/0'/0'/0/0")`.

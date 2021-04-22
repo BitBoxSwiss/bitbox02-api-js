@@ -83,6 +83,27 @@ Sign a Bitcoin single-sig transaction.
 const signatures = await btcSignSimple(coin, simpleType, keypathAccount, inputs, outputs, version, locktime);
 ```
 
+### btcSignMessage
+
+Sign a Bitcoin message on the device.
+
+```javascript
+ /**
+  * @param coin Coin to target - `constants.messages.BTCCoin.*`. Currenty must be `constants.messages.BTCCoin.BTC`.
+  * @param simpleType same as in `btcDisplayAddressSimple`.
+  * @param keypath address-level keypath, for example `getKeypathFromString("m/49'/0'/0'/0/0")`.
+  * @param message Buffer/Uint8Array
+  * @returns Object
+  *     {
+  *         signature: Uint8Array(64)
+  *         recID: number
+  *         electrumSignature: Uint8Array(65)
+  *     }
+  */
+const signedMessage = await btcSignMessage(coin, simpleType, keypath, message);
+```
+
+
 ### btcMaybeRegisterScriptConfig
 
 Register a Bitcoin multisig account on the device with a user chosen name.
