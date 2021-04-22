@@ -199,15 +199,16 @@ export class BitBox02API {
     }
 
     /**
-     * # Display a single-sig address on the device. The address to be shown in the wallet is usually derived
-     * # from the xpub (see `btcXPub` and account type.
+     * Display a single-sig address on the device. The address to be shown in the wallet is usually derived
+     * from the xpub (see `btcXPub` and account type.
      *
      * @param coin Coin to target - `constants.messages.BTCCoin.*`, for example `constants.messages.BTCCoin.BTC`.
      * @param keypath address-level keypath, for example `getKeypathFromString("m/49'/0'/0'/1/10")`.
      * @param simpleType is the address type - `constants.messages.BTCScriptConfig_SimpleType.*`, for example `constants.messages.BTCScriptConfig_SimpleType.P2WPKH_P2SH` for `3...` segwit addresses.
+     * @param display wheter to display the address on the device for user confirmation, default true.
+     * @return promise with address string or reject with aborted error
      */
-    async btcDisplayAddressSimple(coin, keypath, simpleType) {
-        const display = true;
+    async btcDisplayAddressSimple(coin, keypath, simpleType, display = true) {
         return this.firmware().js.AsyncBTCAddressSimple(
             coin,
             keypath,
@@ -384,20 +385,22 @@ export class BitBox02API {
     };
 
     /**
-     * # Display an Ethereum address on the device screen for verification.
+     * Display an Ethereum address on the device screen for verification.
      *
      * @param keypath string, e.g. m/44'/60'/0'/0/0 for the first mainnet account
+     * @param display wheter to display the address on the device for user confirmation, default true.
+     * @returns promise with the ETH address or reject with aborted error
      */
-    async ethDisplayAddress(keypath) {
+    async ethDisplayAddress(keypath, display = true) {
         const keypathArray = getKeypathFromString(keypath);
         // FIXME: see def of `getCoinFromPath()`, since we use the same keypath for Ropsten and Rinkeby,
         // the title for Rinkeby addresses will show 'Ropsten' instead
         const coin = getCoinFromKeypath(keypathArray);
-        this.firmware().js.AsyncETHPub(
+        return this.firmware().js.AsyncETHPub(
             coin,
             keypathArray,
             constants.messages.ETHPubRequest_OutputType.ADDRESS,
-            true,
+            display,
             new Uint8Array()
         );
     };

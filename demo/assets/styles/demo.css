@@ -199,7 +199,7 @@ button {
     font-size: var(--buttonFontSize);
     font-weight: 300;
     text-align: center;
-    height: 52px;
+    min-height: 52px;
     line-height: 52px;
     min-width: var(--buttonWidth);
     cursor: pointer;

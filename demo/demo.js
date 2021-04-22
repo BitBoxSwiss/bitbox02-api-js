@@ -98,8 +98,19 @@ ethPub.addEventListener("click", async () => {
 
 // Get ethereum address for given keypath
 // Only displays address on device, does not return. For verification, derive address from xpub
-ethAddr.addEventListener("click", async () => {
-    await device.api.ethDisplayAddress("m/44'/60'/0'/0/0");
+const ethAddrBtn = document.querySelector("#ethAddr");
+ethAddrBtn.addEventListener("click", async () => {
+    const address = await device.api.ethDisplayAddress("m/44'/60'/0'/0/0", false);
+    ethAddrBtn.textContent = "Confirm the following address on the BitBox:\n" + address;
+    ethAddrBtn.className = "btn btn-warning";
+    try {
+        const addressConfirmed = await device.api.ethDisplayAddress("m/44'/60'/0'/0/0");
+        ethAddrBtn.textContent = "Success!:\n" + addressConfirmed;
+        ethAddrBtn.className = "btn btn-success";
+    } catch (e) {
+        ethAddrBtn.textContent = JSON.stringify(e);
+        ethAddrBtn.className = "btn btn-danger";
+    }
 });
 
 // Sign ethereum transaction
@@ -140,12 +151,28 @@ ethSignMsg.addEventListener("click", async () => {
 });
 
 // Display single-sig BTC address on device for verification
-document.getElementById("btcAddressSimple").addEventListener("click", async () => {
-    await device.api.btcDisplayAddressSimple(
+const simpleBtn = document.getElementById("btcAddressSimple");
+simpleBtn.addEventListener("click", async () => {
+    const address = await device.api.btcDisplayAddressSimple(
         constants.messages.BTCCoin.BTC,
         getKeypathFromString("m/49'/0'/0'/0/0"),
         constants.messages.BTCScriptConfig_SimpleType.P2WPKH_P2SH,
+        false,
     );
+    simpleBtn.textContent = "Confirm the following address on the BitBox:\n" + address;
+    simpleBtn.className = "btn btn-warning";
+    try {
+        const addressConfirmed = await device.api.btcDisplayAddressSimple(
+            constants.messages.BTCCoin.BTC,
+            getKeypathFromString("m/49'/0'/0'/0/0"),
+            constants.messages.BTCScriptConfig_SimpleType.P2WPKH_P2SH,
+        );
+        simpleBtn.textContent = "Success!:\n" + addressConfirmed;
+        simpleBtn.className = "btn btn-success";
+    } catch (e) {
+        simpleBtn.textContent = JSON.stringify(e);
+        simpleBtn.className = "btn btn-danger";
+    }
 });
 
 // Mock sample single-sig BTC transaction
