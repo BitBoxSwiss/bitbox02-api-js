@@ -1,3 +1,9 @@
+# 0.8.1
+- Added support for display=false argument for ethDisplayAddress and btcDisplayAddressSimple
+- Changed demo to show address first and then ask for user confirmation on the BitBox
+- Fixed ethDisplayAddress does not return address
+- Updated documentation for btcSignMessage
+
 # 0.8.0
 - bitbox02-api-go: updated to 3cdcbc6489771e54fdfa18a205416ab1eee291cb
 - Added btcSignMessage()
