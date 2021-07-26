@@ -1,3 +1,7 @@
+# [Unreleased]
+
+- Updated Go to version 1.16
+
 # 0.8.1
 - Added support for display=false argument for ethDisplayAddress and btcDisplayAddressSimple
 - Changed demo to show address first and then ask for user confirmation on the BitBox

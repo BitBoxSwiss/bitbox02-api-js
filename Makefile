@@ -1,12 +1,13 @@
 LOCAL_VENDORED_GOPATH=$(shell pwd)/gopath
-GOPHERJS_GOROOT="$(shell go1.12.17 env GOROOT)"
+GOPHERJS_GOROOT="$(shell go env GOROOT)"
 
 dockercompile:
 	docker run -v `pwd`:/bitbox02-api-js --workdir=/bitbox02-api-js --rm -it bitbox02-api-js make compile
 servedemo:
 	cd demo && python3 -m http.server 8000
 compile:
-	# go 1.12 does not support go modules yet; we make an ad-hoc go root.
+	# GopherJS does not support go modules yet; we make an ad-hoc go root.
+	# See https://github.com/gopherjs/gopherjs/issues/855
 	rm -rf gopath
 	mkdir gopath
 	cp -aR gowrapper/vendor gopath/src

@@ -12,11 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM golang:1.14-buster
-RUN go get golang.org/dl/go1.12.17
-RUN go1.12.17 download
-RUN curl -o /gopherjs.tar.gz -sSL https://github.com/gopherjs/gopherjs/archive/fce0ec30dd00773d3fa974351d04ce2737b5c4d9.tar.gz
+FROM golang:1.16-buster
+RUN curl -o /gopherjs.tar.gz -sSL https://github.com/gopherjs/gopherjs/archive/refs/tags/1.16.3+go1.16.5.tar.gz
 RUN mkdir /gopherjs && tar -xf /gopherjs.tar.gz --strip-components=1 -C /gopherjs
-RUN cd /gopherjs && go mod init github.com/gopherjs/gopherjs && go build
+RUN cd /gopherjs && go build
 
 CMD ["bash"]
