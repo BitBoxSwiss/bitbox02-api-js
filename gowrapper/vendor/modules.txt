@@ -2,14 +2,14 @@
 github.com/btcsuite/btcd/btcec
 # github.com/btcsuite/btcutil v0.0.0-20190425235716-9e5f4b9a998d
 github.com/btcsuite/btcutil/base58
-# github.com/digitalbitbox/bitbox02-api-go v0.0.0-20201102142455-3cdcbc648977
+# github.com/digitalbitbox/bitbox02-api-go v0.0.0-20210705085842-e35fbafc3b98
 ## explicit
 github.com/digitalbitbox/bitbox02-api-go/api/common
 github.com/digitalbitbox/bitbox02-api-go/api/firmware
 github.com/digitalbitbox/bitbox02-api-go/api/firmware/messages
 github.com/digitalbitbox/bitbox02-api-go/util/errp
 github.com/digitalbitbox/bitbox02-api-go/util/semver
-# github.com/flynn/noise v0.0.0-20180327030543-2492fe189ae6
+# github.com/flynn/noise v1.0.0
 ## explicit
 github.com/flynn/noise
 # github.com/golang/protobuf v1.3.2
@@ -19,7 +19,7 @@ github.com/golang/protobuf/proto
 github.com/gopherjs/gopherjs/js
 # github.com/pkg/errors v0.8.1
 github.com/pkg/errors
-# golang.org/x/crypto v0.0.0-20191117063200-497ca9f6d64f
+# golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
 golang.org/x/crypto/blake2b
 golang.org/x/crypto/blake2s
 golang.org/x/crypto/chacha20
@@ -27,5 +27,5 @@ golang.org/x/crypto/chacha20poly1305
 golang.org/x/crypto/curve25519
 golang.org/x/crypto/internal/subtle
 golang.org/x/crypto/poly1305
-# golang.org/x/sys v0.0.0-20191104094858-e8c54fb511f6
+# golang.org/x/sys v0.0.0-20201119102817-f84b799fce68
 golang.org/x/sys/cpu

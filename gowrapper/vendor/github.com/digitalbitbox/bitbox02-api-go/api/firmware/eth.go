@@ -19,6 +19,7 @@ import (
 
 	"github.com/digitalbitbox/bitbox02-api-go/api/firmware/messages"
 	"github.com/digitalbitbox/bitbox02-api-go/util/errp"
+	"github.com/digitalbitbox/bitbox02-api-go/util/semver"
 )
 
 // queryETH is like query, but nested one level deeper for Ethereum.
@@ -78,23 +79,71 @@ func (device *Device) ETHSign(
 	recipient [20]byte,
 	value *big.Int,
 	data []byte) ([]byte, error) {
+	supportsAntiklepto := device.version.AtLeast(semver.NewSemVer(9, 5, 0))
+
+	var hostNonceCommitment *messages.AntiKleptoHostNonceCommitment
+	var hostNonce []byte
+
+	if supportsAntiklepto {
+		var err error
+		hostNonce, err = generateHostNonce()
+		if err != nil {
+			return nil, err
+		}
+		hostNonceCommitment = &messages.AntiKleptoHostNonceCommitment{
+			Commitment: antikleptoHostCommit(hostNonce),
+		}
+	}
+
 	request := &messages.ETHRequest{
 		Request: &messages.ETHRequest_Sign{
 			Sign: &messages.ETHSignRequest{
-				Coin:      coin,
-				Keypath:   keypath,
-				Nonce:     new(big.Int).SetUint64(nonce).Bytes(),
-				GasPrice:  gasPrice.Bytes(),
-				GasLimit:  new(big.Int).SetUint64(gasLimit).Bytes(),
-				Recipient: recipient[:],
-				Value:     value.Bytes(),
-				Data:      data,
+				Coin:                coin,
+				Keypath:             keypath,
+				Nonce:               new(big.Int).SetUint64(nonce).Bytes(),
+				GasPrice:            gasPrice.Bytes(),
+				GasLimit:            new(big.Int).SetUint64(gasLimit).Bytes(),
+				Recipient:           recipient[:],
+				Value:               value.Bytes(),
+				Data:                data,
+				HostNonceCommitment: hostNonceCommitment,
 			},
 		},
 	}
 	response, err := device.queryETH(request)
 	if err != nil {
 		return nil, err
+	}
+
+	if supportsAntiklepto {
+		signerCommitment, ok := response.Response.(*messages.ETHResponse_AntikleptoSignerCommitment)
+		if !ok {
+			return nil, errp.New("unexpected response")
+		}
+		response, err := device.queryETH(&messages.ETHRequest{
+			Request: &messages.ETHRequest_AntikleptoSignature{
+				AntikleptoSignature: &messages.AntiKleptoSignatureRequest{
+					HostNonce: hostNonce,
+				},
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+		signResponse, ok := response.Response.(*messages.ETHResponse_Sign)
+		if !ok {
+			return nil, errp.New("unexpected response")
+		}
+		signature := signResponse.Sign.Signature
+		err = antikleptoVerify(
+			hostNonce,
+			signerCommitment.AntikleptoSignerCommitment.Commitment,
+			signature[:64],
+		)
+		if err != nil {
+			return nil, err
+		}
+		return signature, nil
 	}
 	signResponse, ok := response.Response.(*messages.ETHResponse_Sign)
 	if !ok {
@@ -106,6 +155,7 @@ func (device *Device) ETHSign(
 // ETHSignMessage signs an Ethereum message. The provided msg will be prefixed with "\x19Ethereum
 // message\n" + len(msg) in the hardware, e.g. "\x19Ethereum\n5hello" (yes, the len prefix is the
 // ascii representation with no fixed size or delimiter, WTF).
+// 27 is added to the recID to denote an uncompressed pubkey.
 func (device *Device) ETHSignMessage(
 	coin messages.ETHCoin,
 	keypath []uint32,
@@ -114,12 +164,29 @@ func (device *Device) ETHSignMessage(
 	if len(msg) > 1024 {
 		return nil, errp.New("message too large")
 	}
+
+	supportsAntiklepto := device.version.AtLeast(semver.NewSemVer(9, 5, 0))
+	var hostNonceCommitment *messages.AntiKleptoHostNonceCommitment
+	var hostNonce []byte
+
+	if supportsAntiklepto {
+		var err error
+		hostNonce, err = generateHostNonce()
+		if err != nil {
+			return nil, err
+		}
+		hostNonceCommitment = &messages.AntiKleptoHostNonceCommitment{
+			Commitment: antikleptoHostCommit(hostNonce),
+		}
+	}
+
 	request := &messages.ETHRequest{
 		Request: &messages.ETHRequest_SignMsg{
 			SignMsg: &messages.ETHSignMessageRequest{
-				Coin:    coin,
-				Keypath: keypath,
-				Msg:     msg,
+				Coin:                coin,
+				Keypath:             keypath,
+				Msg:                 msg,
+				HostNonceCommitment: hostNonceCommitment,
 			},
 		},
 	}
@@ -127,9 +194,48 @@ func (device *Device) ETHSignMessage(
 	if err != nil {
 		return nil, err
 	}
+
+	if supportsAntiklepto {
+		signerCommitment, ok := response.Response.(*messages.ETHResponse_AntikleptoSignerCommitment)
+		if !ok {
+			return nil, errp.New("unexpected response")
+		}
+		response, err := device.queryETH(&messages.ETHRequest{
+			Request: &messages.ETHRequest_AntikleptoSignature{
+				AntikleptoSignature: &messages.AntiKleptoSignatureRequest{
+					HostNonce: hostNonce,
+				},
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		signResponse, ok := response.Response.(*messages.ETHResponse_Sign)
+		if !ok {
+			return nil, errp.New("unexpected response")
+		}
+		signature := signResponse.Sign.Signature
+		err = antikleptoVerify(
+			hostNonce,
+			signerCommitment.AntikleptoSignerCommitment.Commitment,
+			signature[:64],
+		)
+		if err != nil {
+			return nil, err
+		}
+		// 27 is the magic constant to add to the recoverable ID to denote an uncompressed pubkey.
+		signature[64] += 27
+		return signature, nil
+	}
+
 	signResponse, ok := response.Response.(*messages.ETHResponse_Sign)
 	if !ok {
 		return nil, errp.New("unexpected response")
 	}
-	return signResponse.Sign.Signature, nil
+	signature := signResponse.Sign.Signature
+	// 27 is the magic constant to add to the recoverable ID to denote an uncompressed pubkey.
+	signature[64] += 27
+
+	return signature, nil
 }

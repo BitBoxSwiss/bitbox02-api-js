@@ -112,6 +112,9 @@ type DeviceInfo struct {
 	Version                   string `json:"version"`
 	Initialized               bool   `json:"initialized"`
 	MnemonicPassphraseEnabled bool   `json:"mnemonicPassphraseEnabled"`
+	// This information is only available since firmwae v9.6.0. Will be an empty string for older
+	// firmware versions.
+	SecurechipModel string `json:"securechipModel"`
 }
 
 // NewDevice creates a new instance of Device.
@@ -235,8 +238,8 @@ func (device *Device) inferVersionAndProduct() error {
 // otherwise performs the attestation check, unlock, and noise pairing. This call is blocking.
 // After this call finishes, Status() will be either:
 // - StatusRequireAppUpgrade
-// - StatusPairingFailed (pairing rejected on the device)
-// - StatusUnpaired (in which the host needs to confirm the pairing with ChannelHashVerify(true))
+// - StatusPairingFailed: pairing rejected on the device
+// - StatusUnpaired: the host needs to confirm the pairing with ChannelHashVerify(true).
 func (device *Device) Init() error {
 	device.attestation = nil
 	device.deviceNoiseStaticPubkey = nil
@@ -297,7 +300,7 @@ func (device *Device) Close() {
 	device.communication.Close()
 }
 
-// Random requests a random number from the device using protobuf messages
+// Random requests a random number from the device using protobuf messages.
 func (device *Device) Random() ([]byte, error) {
 	request := &messages.Request{
 		Request: &messages.Request_RandomNumber{
@@ -316,6 +319,31 @@ func (device *Device) Random() ([]byte, error) {
 	}
 
 	return randomResponse.RandomNumber.Number, nil
+}
+
+// RootFingerprint returns the keystore's root fingerprint, which is the first 32 bits of the
+// hash160 of the pubkey at the keypath m/.
+//
+// https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#key-identifiers
+func (device *Device) RootFingerprint() ([]byte, error) {
+	request := &messages.Request{
+		Request: &messages.Request_Fingerprint{
+			Fingerprint: &messages.RootFingerprintRequest{},
+		},
+	}
+	response, err := device.query(request)
+	if err != nil {
+		return nil, err
+	}
+	fingerprintResponse, ok := response.Response.(*messages.Response_Fingerprint)
+	if !ok {
+		return nil, errp.New("expected Fingerprint response")
+	}
+	fingerprint := fingerprintResponse.Fingerprint.Fingerprint
+	if len(fingerprint) != 4 {
+		return nil, errp.Newf("fingerprint len=%d, expected 4", len(fingerprint))
+	}
+	return fingerprint, nil
 }
 
 // Product returns the device product.
@@ -342,6 +370,9 @@ func (device *Device) SupportsETH(coinCode messages.ETHCoin) bool {
 }
 
 // SupportsERC20 returns true if an ERC20 token is supported by the device api.
+//
+// For now, this list only contains tokens relevant to the BitBoxApp, otherwise the bitbox02-api-js
+// library size would blow up. TODO: move this to the bitbox-wallet-app repo.
 func (device *Device) SupportsERC20(contractAddress string) bool {
 	if *device.product != common.ProductBitBox02Multi {
 		return false
@@ -363,6 +394,14 @@ func (device *Device) SupportsERC20(contractAddress string) bool {
 		case
 			"0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", // USDC
 			"0x6B175474E89094C44Da98b954EedeAC495271d0F": // DAI
+			return true
+		}
+	}
+	if device.version.AtLeast(semver.NewSemVer(6, 0, 0)) {
+		switch contractAddress {
+		case
+			"0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599", // WBTC
+			"0x45804880De22913dAFE09f4980848ECE6EcbAf78": // PAXG
 			return true
 		}
 	}
