@@ -14,7 +14,9 @@ The BitBox02 is a hardware wallet made by [Shift Crypto](https://shiftcrypto.ch)
 
 ## Integration
 
-To enable communication from the browser to the BitBox02, the [BitBoxBridge](https://github.com/digitalbitbox/bitbox-bridge) needs to be installed and running.
+To enable communication from the browser to the BitBox02, either:
+  - WebHID needs to be supported by the browser, e.g. Chrome
+  - or the [BitBoxBridge](https://github.com/digitalbitbox/bitbox-bridge) needs to be installed and running
 
 When integrating the BitBox02 into your application, your domain needs to be whitelisted in the BitBoxBridge.
 To do so, please submit a Pull Request or an Issue in the [bitbox-bridge](https://github.com/digitalbitbox/bitbox-bridge) repository.
@@ -37,6 +39,7 @@ import { BitBox02API, getDevicePath} from 'bitbox02-api';
 ### Initialize
 
 To get the device path, the BitBoxBridge needs to be running.
+If WebHID (`navigator.hid`) is available, `getDevicePath()` returns `"WEBHID"`, which instructs `BitBox02API` to prefer WebHID over the BitBoxBridge.
 
 ```javascript
 const devicePath = await getDevicePath();
