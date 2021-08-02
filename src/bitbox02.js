@@ -95,13 +95,13 @@ export class BitBox02API {
     connectWebsocket() {
         const socket = new WebSocket("ws://127.0.0.1:8178/api/v1/socket/" + this.devicePath);
         return new Promise((resolve, reject) => {
-            socket.binaryType = 'arraybuffer'
+            socket.binaryType = 'arraybuffer';
             socket.onopen = function (event) {
                 resolve(socket);
-            }
+            };
             socket.onerror = function(event) {
                 reject("Your BitBox02 is busy");
-            }
+            };
         });
     }
 
@@ -118,10 +118,10 @@ export class BitBox02API {
         this.socket = await this.connectWebsocket();
         this.socket.onclose = function(event) {
                 onCloseCb();
-            }
+            };
         this.socket.onmessage = event => {
             this.firmware().js.OnRead(new Uint8Array(event.data));
-        }
+        };
         const onWrite = bytes => {
             if (this.socket.readyState != WebSocket.OPEN) {
                 console.log("Error, trying to write to closed socket");
@@ -170,7 +170,7 @@ export class BitBox02API {
                 this.socket.close();
                 throw new Error("Pairing rejected");
             case constants.Status.Unpaired:
-                await userVerify()
+                await userVerify();
                 await this.firmware().js.AsyncChannelHashVerify(true);
                 break;
             case constants.Status.Initialized:
