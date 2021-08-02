@@ -89,6 +89,20 @@ export class BitBox02API {
     constructor(devicePath)  {
         this.devicePath = devicePath;
         this.opened = false;
+        this.socket = null;
+    }
+
+    connectWebsocket() {
+        const socket = new WebSocket("ws://127.0.0.1:8178/api/v1/socket/" + this.devicePath);
+        return new Promise((resolve, reject) => {
+            socket.binaryType = 'arraybuffer';
+            socket.onopen = function (event) {
+                resolve(socket);
+            };
+            socket.onerror = function(event) {
+                reject("Your BitBox02 is busy");
+            };
+        });
     }
 
     /**
@@ -99,87 +113,72 @@ export class BitBox02API {
      * @param setStatusCb Callback that lets the API set the status received from the device.
      * @return Promise that will resolve once the pairing is complete.
      */
-    connect (showPairingCb, userVerify, handleAttestationCb, onCloseCb, setStatusCb) {
-        const self = this;
-        self.opened = true;
-        return new Promise((resolve, reject) => {
-            function onWrite(bytes) {
-                if (self.socket.readyState != WebSocket.OPEN) {
-                    console.log("Error, trying to write to closed socket");
-                    return;
-                }
-                self.socket.send(bytes);
-            }
-
-            self.socket = new WebSocket("ws://127.0.0.1:8178/api/v1/socket/" + self.devicePath)
-            self.socket.binaryType = 'arraybuffer'
-            self.socket.onopen = async function (event) {
-                try {
-                    self.fw = api.New(onWrite);
-
-                    // Turn all Async* methods into promises.
-                    for (const key in self.firmware().js) {
-                        if (key.startsWith("Async")) {
-                            self.firmware().js[key] = promisify(self.firmware().js[key]);
-                        }
-                    }
-
-                    self.firmware().SetOnEvent(ev => {
-                        if (ev === constants.Event.StatusChanged && self.firmware()) {
-                            setStatusCb(self.firmware().Status());
-                        }
-                        if (ev === constants.Event.StatusChanged && self.firmware().Status() === constants.Status.Unpaired) {
-                            const [channelHash] = self.firmware().ChannelHash();
-                            showPairingCb(channelHash);
-                        }
-                        if (ev === constants.Event.AttestationCheckDone) {
-                            handleAttestationCb(self.firmware().Attestation());
-                        }
-                        if (ev === constants.Event.StatusChanged && self.firmware().Status() === constants.Status.RequireFirmwareUpgrade) {
-                            self.socket.close();
-                            reject('Firmware upgrade required');
-                        }
-                        if (ev === constants.Event.StatusChanged && self.firmware().Status() === constants.Status.RequireAppUpgrade) {
-                            self.socket.close();
-                            reject('Unsupported firmware');
-                        }
-                        if (ev === constants.Event.StatusChanged && self.firmware().Status() === constants.Status.Uninitialized) {
-                            self.socket.close();
-                            reject('Uninitialized');
-                        }
-                    });
-
-                    await self.firmware().js.AsyncInit();
-                    switch(self.firmware().Status()) {
-                        case constants.Status.PairingFailed:
-                            self.socket.close();
-                            throw new Error("Pairing rejected");
-                        case constants.Status.Unpaired:
-                            await userVerify()
-                            await self.firmware().js.AsyncChannelHashVerify(true);
-                            break;
-                        case constants.Status.Initialized:
-                            // Pairing skipped.
-                            break;
-                        default:
-                            throw new Error("Unexpected status: " + self.firmware().Status() + "," + constants.Status.Unpaired);
-                    }
-
-                    resolve();
-                } catch(err) {
-                    reject(err);
-                }
-            }
-            self.socket.onerror = function(event) {
-                reject("Your BitBox02 is busy");
-            }
-            self.socket.onmessage = function(event) {
-                self.firmware().js.OnRead(new Uint8Array(event.data));
-            }
-            self.socket.onclose = function(event) {
+    async connect(showPairingCb, userVerify, handleAttestationCb, onCloseCb, setStatusCb) {
+        this.opened = true;
+        this.socket = await this.connectWebsocket();
+        this.socket.onclose = function(event) {
                 onCloseCb();
+            };
+        this.socket.onmessage = event => {
+            this.firmware().js.OnRead(new Uint8Array(event.data));
+        };
+        const onWrite = bytes => {
+            if (this.socket.readyState != WebSocket.OPEN) {
+                console.log("Error, trying to write to closed socket");
+                return;
+            }
+            this.socket.send(bytes);
+        }
+
+        this.fw = api.New(onWrite);
+
+        // Turn all Async* methods into promises.
+        for (const key in this.firmware().js) {
+            if (key.startsWith("Async")) {
+                this.firmware().js[key] = promisify(this.firmware().js[key]);
+            }
+        }
+
+        this.firmware().SetOnEvent(ev => {
+            if (ev === constants.Event.StatusChanged && this.firmware()) {
+                setStatusCb(this.firmware().Status());
+            }
+            if (ev === constants.Event.StatusChanged && this.firmware().Status() === constants.Status.Unpaired) {
+                const [channelHash] = this.firmware().ChannelHash();
+                showPairingCb(channelHash);
+            }
+            if (ev === constants.Event.AttestationCheckDone) {
+                handleAttestationCb(this.firmware().Attestation());
+            }
+            if (ev === constants.Event.StatusChanged && this.firmware().Status() === constants.Status.RequireFirmwareUpgrade) {
+                this.socket.close();
+                throw new Error('Firmware upgrade required');
+            }
+            if (ev === constants.Event.StatusChanged && this.firmware().Status() === constants.Status.RequireAppUpgrade) {
+                this.socket.close();
+                throw new Error('Unsupported firmware');
+            }
+            if (ev === constants.Event.StatusChanged && this.firmware().Status() === constants.Status.Uninitialized) {
+                this.socket.close();
+                throw new Error('Uninitialized');
             }
         });
+
+        await this.firmware().js.AsyncInit();
+        switch(this.firmware().Status()) {
+            case constants.Status.PairingFailed:
+                this.socket.close();
+                throw new Error("Pairing rejected");
+            case constants.Status.Unpaired:
+                await userVerify();
+                await this.firmware().js.AsyncChannelHashVerify(true);
+                break;
+            case constants.Status.Initialized:
+                // Pairing skipped.
+                break;
+            default:
+                throw new Error("Unexpected status: " + this.firmware().Status() + "," + constants.Status.Unpaired);
+        }
     }
 
 
