@@ -2,6 +2,7 @@
 
 - Updated Go to version 1.16
 - Drop requirement for running the BitBoxBridge if WebHID is available in the Browser (Chrome only for now)
+- Publish transpiled ES5 code instead of source ES6 code for better compatibility
 
 # 0.8.1
 - Added support for display=false argument for ethDisplayAddress and btcDisplayAddressSimple
