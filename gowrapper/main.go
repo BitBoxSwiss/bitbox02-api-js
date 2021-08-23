@@ -25,8 +25,11 @@ import (
 	"github.com/digitalbitbox/bitbox02-api-go/api/common"
 	"github.com/digitalbitbox/bitbox02-api-go/api/firmware"
 	"github.com/digitalbitbox/bitbox02-api-go/api/firmware/messages"
+	"github.com/digitalbitbox/bitbox02-api-go/communication/u2fhid"
 	"github.com/gopherjs/gopherjs/js"
 )
+
+const bitboxCMD = 0x80 + 0x40 + 0x01
 
 // whitelistedFirmwareMethods are exposed as-is from firmare.Device.
 var whitelistedFirmwareMethods = map[string]*struct{}{
@@ -76,7 +79,8 @@ func main() {
 		"IsErrorAbort": func(jsError map[string]interface{}) bool {
 			return firmware.IsErrorAbort(fromJSError(jsError))
 		},
-		"New": newJSDevice,
+		"NewDeviceBridge": newJSDeviceBridge,
+		"NewDeviceWebHID": newJSDeviceWebHID,
 		"constants": map[string]interface{}{
 			"Product": map[string]interface{}{
 				"BitBox02Multi":      common.ProductBitBox02Multi,
@@ -110,42 +114,23 @@ func main() {
 	})
 }
 
-func newJSDevice(onWrite func([]byte)) *js.Object {
-	readChan := make(chan []byte)
-	device := firmware.NewDevice(
-		nil,
-		nil,
-		&config{},
-		&bb02Communication{
-			query: func(msg []byte) ([]byte, error) {
-				dataLen := len(msg)
-				if dataLen > 0xFFFF {
-					panic("msg too large")
-				}
-				// init frame
-				var packet bytes.Buffer
-				const cid = 0xff000000
-				const bitboxCMD = 0x80 + 0x40 + 0x01
-				if err := binary.Write(&packet, binary.BigEndian, uint32(cid)); err != nil {
-					panic(err)
-				}
-				if err := binary.Write(&packet, binary.BigEndian, byte(bitboxCMD)); err != nil {
-					panic(err)
-				}
-				if err := binary.Write(&packet, binary.BigEndian, uint16(dataLen&0xFFFF)); err != nil {
-					panic(err)
-				}
-				packet.Write(msg)
-				onWrite(packet.Bytes())
-				return <-readChan, nil
-			},
-			close: func() {
+type readWriteCloser struct {
+	read  func(p []byte) (n int, err error)
+	write func(p []byte) (n int, err error)
+}
 
-			},
-		},
-		&bitbox02Logger{},
-	)
+func (r readWriteCloser) Read(p []byte) (n int, err error) {
+	return r.read(p)
+}
 
+func (r readWriteCloser) Write(p []byte) (n int, err error) {
+	return r.write(p)
+}
+
+func (r readWriteCloser) Close() error { return nil }
+
+func newJSDevice(communication firmware.Communication, readChan chan []byte) *js.Object {
+	device := firmware.NewDevice(nil, nil, &config{}, communication, &bitbox02Logger{})
 	// TODO: construct directly from whitelist instead of deleting. The way GopherJS
 	// works, there is no js file size savings doing that, so deleting after is okay for
 	// now.
@@ -161,6 +146,55 @@ func newJSDevice(onWrite func([]byte)) *js.Object {
 	return obj
 }
 
+func newJSDeviceBridge(onWrite func([]byte)) *js.Object {
+	readChan := make(chan []byte)
+	communication := &bb02Communication{
+		query: func(msg []byte) ([]byte, error) {
+			dataLen := len(msg)
+			if dataLen > 0xFFFF {
+				panic("msg too large")
+			}
+			// init frame
+			var packet bytes.Buffer
+			const cid = 0xff000000
+			if err := binary.Write(&packet, binary.BigEndian, uint32(cid)); err != nil {
+				panic(err)
+			}
+			if err := binary.Write(&packet, binary.BigEndian, byte(bitboxCMD)); err != nil {
+				panic(err)
+			}
+			if err := binary.Write(&packet, binary.BigEndian, uint16(dataLen&0xFFFF)); err != nil {
+				panic(err)
+			}
+			packet.Write(msg)
+			onWrite(packet.Bytes())
+			readMsg := <-readChan
+			readMsg = readMsg[7:] // TODO: parse and verify u2f header
+			return readMsg, nil
+		},
+		close: func() {},
+	}
+	return newJSDevice(communication, readChan)
+}
+
+func newJSDeviceWebHID(onWrite func([]byte)) *js.Object {
+	readChan := make(chan []byte)
+	communication := u2fhid.NewCommunication(
+		&readWriteCloser{
+			read: func(p []byte) (n int, err error) {
+				b := <-readChan
+				return copy(p, b), nil
+			},
+			write: func(p []byte) (n int, err error) {
+				onWrite(p)
+				return len(p), nil
+			},
+		},
+		bitboxCMD,
+	)
+	return newJSDevice(communication, readChan)
+}
+
 // jsDevice adds additional device methods to be exposed to JavaScript.
 //
 // All methods starting with Async follow the same pattern: first argument is a "done" callback with
@@ -172,7 +206,6 @@ type jsDevice struct {
 }
 
 func (device *jsDevice) OnRead(msg []byte) {
-	msg = msg[7:] // TODO: parse and verify u2f header
 	device.readChan <- msg
 }
 

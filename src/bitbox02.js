@@ -23,12 +23,19 @@ export const constants = bitbox02.constants;
 export const isErrorAbort = bitbox02.IsErrorAbort;
 export const HARDENED = 0x80000000;
 
+const webHID = 'WEBHID';
+
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// Will try for 1 second to find a device through the bridge.
+// If WebHID support is present, this returns the constant "WEBHID". Otherwise,
+// will try for 1 second to find a device through the bridge, check if
+// there is exactly one connected BitBox02, and return its bridge device path.
 export async function getDevicePath() {
+    if (navigator.hid) {
+        return webHID;
+    }
     const attempts = 10;
     for (let i=0; i<attempts; i++){
         let response;
@@ -86,23 +93,91 @@ const setOutputDefaults = outputs =>  {
 }
 
 export class BitBox02API {
+    /**
+     * @param devicePath See `getDevicePath()`.
+    */
     constructor(devicePath)  {
         this.devicePath = devicePath;
         this.opened = false;
-        this.socket = null;
+        // connection is an object with three keys once the connection is established:
+        // onWrite(bytes): send bytes
+        // close():  close the connection
+        // valid(): bool - is the connection still alive?
+        this.connection = null;
+        this.onCloseCb = null;
+
+        if (navigator.hid) {
+            navigator.hid.addEventListener("disconnect", () => {
+                if (this.onCloseCb) {
+                    this.onCloseCb();
+                }
+            });
+        }
     }
 
-    connectWebsocket() {
+    connectWebsocket = onMessageCb => {
         const socket = new WebSocket("ws://127.0.0.1:8178/api/v1/socket/" + this.devicePath);
         return new Promise((resolve, reject) => {
             socket.binaryType = 'arraybuffer';
+            socket.onmessage = event => { onMessageCb(new Uint8Array(event.data)); };
+            socket.onclose = event => {
+                if (this.onCloseCb) {
+                    this.onCloseCb();
+                }
+            };
             socket.onopen = function (event) {
-                resolve(socket);
+                resolve({
+                    onWrite: bytes => {
+                        if (socket.readyState != WebSocket.OPEN) {
+                            console.error("attempted write to a closed socket");
+                            return;
+                        }
+                        socket.send(bytes);
+                    },
+                    close: socket.close,
+                    valid: () => {
+                        return socket.readyState == WebSocket.OPEN;
+                    },
+                });
             };
             socket.onerror = function(event) {
                 reject("Your BitBox02 is busy");
             };
         });
+    }
+
+    connectWebHID = async (onMessageCb) => {
+        const vendorID = 0x03eb;
+        const productID = 0x2403;
+        let device;
+        try {
+            const devices = await navigator.hid.requestDevice({filters: [{vendorID, productID}]});
+            const d = devices[0];
+            // Filter out other products that might be in the list presented by the Browser.
+            if (d.productName.includes('BitBox02')) {
+                device = d;
+            }
+        } catch {
+            return null;
+        }
+        if (!device) {
+            return null;
+        }
+        await device.open();
+        device.addEventListener("inputreport", event => {
+            onMessageCb(new Uint8Array(event.data.buffer));
+        });
+        return {
+            onWrite: bytes => {
+                if (!device.opened) {
+                    console.error("attempted write to a closed HID connection");
+                    return;
+                }
+                device.sendReport(0, bytes);
+            },
+            close: device.close,
+            valid: () => device.opened,
+        };
     }
 
     /**
@@ -114,23 +189,23 @@ export class BitBox02API {
      * @return Promise that will resolve once the pairing is complete.
      */
     async connect(showPairingCb, userVerify, handleAttestationCb, onCloseCb, setStatusCb) {
+        this.onCloseCb = onCloseCb;
         this.opened = true;
-        this.socket = await this.connectWebsocket();
-        this.socket.onclose = function(event) {
-                onCloseCb();
-            };
-        this.socket.onmessage = event => {
-            this.firmware().js.OnRead(new Uint8Array(event.data));
-        };
-        const onWrite = bytes => {
-            if (this.socket.readyState != WebSocket.OPEN) {
-                console.log("Error, trying to write to closed socket");
-                return;
-            }
-            this.socket.send(bytes);
+        const onMessage = bytes => { this.firmware().js.OnRead(bytes); };
+        const useBridge = this.devicePath !== webHID;
+        if (useBridge) {
+            this.connection = await this.connectWebsocket(onMessage);
+        } else {
+            this.connection = await this.connectWebHID(onMessage);
         }
-
-        this.fw = api.New(onWrite);
+        if (!this.connection) {
+            throw new Error("Could not establish a connection to the BitBox02");
+        }
+        if (useBridge) {
+            this.fw = api.NewDeviceBridge(this.connection.onWrite);
+        } else {
+            this.fw = api.NewDeviceWebHID(this.connection.onWrite);
+        }
 
         // Turn all Async* methods into promises.
         for (const key in this.firmware().js) {
@@ -151,15 +226,15 @@ export class BitBox02API {
                 handleAttestationCb(this.firmware().Attestation());
             }
             if (ev === constants.Event.StatusChanged && this.firmware().Status() === constants.Status.RequireFirmwareUpgrade) {
-                this.socket.close();
+                this.connection.close();
                 throw new Error('Firmware upgrade required');
             }
             if (ev === constants.Event.StatusChanged && this.firmware().Status() === constants.Status.RequireAppUpgrade) {
-                this.socket.close();
+                this.connection.close();
                 throw new Error('Unsupported firmware');
             }
             if (ev === constants.Event.StatusChanged && this.firmware().Status() === constants.Status.Uninitialized) {
-                this.socket.close();
+                this.connection.close();
                 throw new Error('Uninitialized');
             }
         });
@@ -167,7 +242,7 @@ export class BitBox02API {
         await this.firmware().js.AsyncInit();
         switch(this.firmware().Status()) {
             case constants.Status.PairingFailed:
-                this.socket.close();
+                this.connection.close();
                 throw new Error("Pairing rejected");
             case constants.Status.Unpaired:
                 await userVerify();
@@ -496,7 +571,7 @@ export class BitBox02API {
      * @returns True if the connection has been opened and successfully established.
      */
     connectionValid() {
-        return this.opened && this.socket.readyState == WebSocket.OPEN;
+        return this.opened && this.connection.valid();
     }
 
     /**
@@ -506,7 +581,7 @@ export class BitBox02API {
         if (!this.connectionValid()) {
             return false;
         }
-        this.socket.close();
+        this.connection.close();
         return true;
     }
 
