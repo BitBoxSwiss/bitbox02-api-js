@@ -98,7 +98,6 @@ export class BitBox02API {
     */
     constructor(devicePath)  {
         this.devicePath = devicePath;
-        this.opened = false;
         // connection is an object with three keys once the connection is established:
         // onWrite(bytes): send bytes
         // close():  close the connection
@@ -190,7 +189,6 @@ export class BitBox02API {
      */
     async connect(showPairingCb, userVerify, handleAttestationCb, onCloseCb, setStatusCb) {
         this.onCloseCb = onCloseCb;
-        this.opened = true;
         const onMessage = bytes => { this.firmware().js.OnRead(bytes); };
         const useBridge = this.devicePath !== webHID;
         if (useBridge) {
@@ -571,7 +569,7 @@ export class BitBox02API {
      * @returns True if the connection has been opened and successfully established.
      */
     connectionValid() {
-        return this.opened && this.connection.valid();
+        return this.connection && this.connection.valid();
     }
 
     /**
@@ -582,6 +580,7 @@ export class BitBox02API {
             return false;
         }
         this.connection.close();
+        this.connection = null;
         return true;
     }
 
