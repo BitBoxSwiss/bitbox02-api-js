@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "test": "jest",
-    "prepublish": "babel src --out-dir lib --copy-files --ignore src/bitbox02-api-go.js"
+    "transpile": "babel src --out-dir lib --copy-files --ignore src/bitbox02-api-go.js"
   },
   "repository": {
     "type": "git",
