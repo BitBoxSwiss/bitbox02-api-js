@@ -13,7 +13,7 @@
 # limitations under the License.
 
 FROM golang:1.16-buster
-RUN curl -o /gopherjs.tar.gz -sSL https://github.com/gopherjs/gopherjs/archive/refs/tags/1.16.3+go1.16.5.tar.gz
+RUN curl -o /gopherjs.tar.gz -sSL https://github.com/gopherjs/gopherjs/archive/refs/tags/1.16.4+go1.16.7.tar.gz
 RUN mkdir /gopherjs && tar -xf /gopherjs.tar.gz --strip-components=1 -C /gopherjs
 RUN cd /gopherjs && go build
 
