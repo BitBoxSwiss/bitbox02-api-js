@@ -52,7 +52,7 @@ export async function getDevicePath() {
                 errorMessage = 'Unexpected';
                 throw new Error();
             }
-        } catch {
+        } catch (err) {
             throw new Error(errorMessage ? errorMessage : 'BitBoxBridge not found');
         }
         const devices = (await response.json()).devices;
@@ -157,7 +157,7 @@ export class BitBox02API {
             if (d.productName.includes('BitBox02')) {
                 device = d;
             }
-        } catch {
+        } catch (err) {
             return null;
         }
         if (!device) {
@@ -556,7 +556,7 @@ export class BitBox02API {
                 v: [parseInt(sig.slice(64), 16) + 27]
             };
             return result;
-        } catch(err) {
+        } catch (err) {
             if (api.IsErrorAbort(err)) {
                 throw new Error('User abort');
             } else {
