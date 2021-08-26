@@ -163,9 +163,10 @@ export class BitBox02API {
             return null;
         }
         await device.open();
-        device.addEventListener("inputreport", event => {
+        const onInputReport = event => {
             onMessageCb(new Uint8Array(event.data.buffer));
-        });
+        };
+        device.addEventListener("inputreport", onInputReport);
         return {
             onWrite: bytes => {
                 if (!device.opened) {
@@ -176,6 +177,7 @@ export class BitBox02API {
             },
             close: () => {
                 device.close().then(() => {
+                    device.removeEventListener("inputreport", onInputReport);
                     if (this.onCloseCb) {
                         this.onCloseCb();
                     }
@@ -195,7 +197,11 @@ export class BitBox02API {
      */
     async connect(showPairingCb, userVerify, handleAttestationCb, onCloseCb, setStatusCb) {
         this.onCloseCb = onCloseCb;
-        const onMessage = bytes => { this.firmware().js.OnRead(bytes); };
+        const onMessage = bytes => {
+            if (this.connectionValid()) {
+                this.firmware().js.OnRead(bytes);
+            }
+        };
         const useBridge = this.devicePath !== webHID;
         if (useBridge) {
             this.connection = await this.connectWebsocket(onMessage);
