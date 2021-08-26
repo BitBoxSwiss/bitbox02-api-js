@@ -133,7 +133,7 @@ export class BitBox02API {
                         }
                         socket.send(bytes);
                     },
-                    close: socket.close,
+                    close: () => socket.close(),
                     valid: () => {
                         return socket.readyState == WebSocket.OPEN;
                     },
@@ -174,7 +174,13 @@ export class BitBox02API {
                 }
                 device.sendReport(0, bytes);
             },
-            close: device.close,
+            close: () => {
+                device.close().then(() => {
+                    if (this.onCloseCb) {
+                        this.onCloseCb();
+                    }
+                });
+            },
             valid: () => device.opened,
         };
     }
