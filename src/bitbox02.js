@@ -98,7 +98,6 @@ export class BitBox02API {
     */
     constructor(devicePath)  {
         this.devicePath = devicePath;
-        this.opened = false;
         // connection is an object with three keys once the connection is established:
         // onWrite(bytes): send bytes
         // close():  close the connection
@@ -134,7 +133,7 @@ export class BitBox02API {
                         }
                         socket.send(bytes);
                     },
-                    close: socket.close,
+                    close: () => socket.close(),
                     valid: () => {
                         return socket.readyState == WebSocket.OPEN;
                     },
@@ -164,9 +163,10 @@ export class BitBox02API {
             return null;
         }
         await device.open();
-        device.addEventListener("inputreport", event => {
+        const onInputReport = event => {
             onMessageCb(new Uint8Array(event.data.buffer));
-        });
+        };
+        device.addEventListener("inputreport", onInputReport);
         return {
             onWrite: bytes => {
                 if (!device.opened) {
@@ -175,7 +175,14 @@ export class BitBox02API {
                 }
                 device.sendReport(0, bytes);
             },
-            close: device.close,
+            close: () => {
+                device.close().then(() => {
+                    device.removeEventListener("inputreport", onInputReport);
+                    if (this.onCloseCb) {
+                        this.onCloseCb();
+                    }
+                });
+            },
             valid: () => device.opened,
         };
     }
@@ -190,8 +197,11 @@ export class BitBox02API {
      */
     async connect(showPairingCb, userVerify, handleAttestationCb, onCloseCb, setStatusCb) {
         this.onCloseCb = onCloseCb;
-        this.opened = true;
-        const onMessage = bytes => { this.firmware().js.OnRead(bytes); };
+        const onMessage = bytes => {
+            if (this.connectionValid()) {
+                this.firmware().js.OnRead(bytes);
+            }
+        };
         const useBridge = this.devicePath !== webHID;
         if (useBridge) {
             this.connection = await this.connectWebsocket(onMessage);
@@ -571,7 +581,7 @@ export class BitBox02API {
      * @returns True if the connection has been opened and successfully established.
      */
     connectionValid() {
-        return this.opened && this.connection.valid();
+        return this.connection && this.connection.valid();
     }
 
     /**
@@ -582,6 +592,7 @@ export class BitBox02API {
             return false;
         }
         this.connection.close();
+        this.connection = null;
         return true;
     }
 
