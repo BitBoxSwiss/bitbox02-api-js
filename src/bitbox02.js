@@ -29,11 +29,15 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-// If WebHID support is present, this returns the constant "WEBHID". Otherwise,
-// will try for 1 second to find a device through the bridge, check if
+// If WebHID support is present (`navigator.hid` is defined) , this returns the constant "WEBHID".
+// Otherwise,  will try for 1 second to find a device through the bridge, check if
 // there is exactly one connected BitBox02, and return its bridge device path.
-export async function getDevicePath() {
-    if (navigator.hid) {
+//
+// if options.forceBridge is true, the BitBoxBridge will be used regardless of whether WebHID
+// support is present.
+export async function getDevicePath(options = { forceBridge: false }) {
+    const forceBridge = options && options.forceBridge;
+    if (navigator.hid && !forceBridge) {
         return webHID;
     }
     const attempts = 10;
