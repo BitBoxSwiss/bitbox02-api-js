@@ -528,7 +528,7 @@ export class BitBox02API {
             const result = {
                 r: sig.slice(0, 0 + 32),
                 s: sig.slice(0 + 32, 0 + 32 + 32),
-                v: [parseInt(sig.slice(64), 16) + 27 + vOffset]
+                v: [sig[64] + 27 + vOffset],
             };
             return result;
         } catch (err) {
@@ -567,7 +567,7 @@ export class BitBox02API {
             const result = {
                 r: sig.slice(0, 0 + 32),
                 s: sig.slice(0 + 32, 0 + 32 + 32),
-                v: [parseInt(sig.slice(64), 16) + 27]
+                v: sig.slice(64), // offset of 27 is already included by bitbox02-api-go
             };
             return result;
         } catch (err) {
