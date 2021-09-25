@@ -581,6 +581,66 @@ export class BitBox02API {
 
     // --- End Ethereum methods ---
 
+    // --- Cardano methods ---
+
+    /**
+     * # Get Cardano xPub keys for a given derivation paths.
+     *
+     * @param keypaths array of account keypaths, each keypath in in array format
+     * @returns string; 64 byte extended public key (32 bytes public key + 32 bytes chain code)
+     */
+    async cardanoXPubs(keypaths) {
+        return await this.firmware().js.AsyncCardanoXPubs(keypaths);
+    };
+
+    /**
+     * # Get a Cardano address.
+     *
+     * @param network: See `constants.messages.CardanoNetwork.CardanoMainnet` or `constants.messages.CardanoNetwork.CardanoTestnet`.
+     * @param scriptConfig see gowrapper/cardano.go:cardanoScriptConfig
+     * @param display wheter to display the address on the device for user confirmation, default true.
+     * @return promise with address string or reject with aborted error
+     */
+    async cardanoAddress(network, scriptConfig, display = true) {
+        return await this.firmware().js.AsyncCardanoAddress(network, scriptConfig, display);
+    };
+
+    /**
+     * # Sign a Cardano transaction.
+     *
+     * One transaction object is expected, with the following keys:
+     * network: Network to target - `constants.messages.CardanoNetwork.*`, for example `constants.messages.CardanoNetwork.CardanoMainnet`.
+     * inputs: list of input objects. See see gowrapper/cardano.go:cardanoInput
+     * outputs: list of output objects. See see gowrapper/cardano.go:cardanoOutput
+     * fee: transaction fee (decimal string)
+     * ttl: transaction time-to-live (decimal string)
+     * certificates: list of certificate objects. see gowrapper/cardano.go:cardanoCertificate
+     * withdrawals: list of withdrawal objects. see gowrapper/cardano.go:cardanoWithdrawal
+     * validityIntervalstart: transaction validity interval start (decimal string)
+     * @return Object { "shelleyWitnesses": [{ "signature": Uint8Array, "publicKey": Uint8Array }] }
+     */
+    async cardanoSignTransaction({
+        network,
+        inputs,
+        outputs,
+        fee,
+        ttl,
+        certificates,
+        withdrawals,
+        validityIntervalStart,
+    }) {
+        return await this.firmware().js.AsyncCardanoSignTransaction(
+            network,
+            inputs || [],
+            outputs || [],
+            fee,
+            ttl || "0",
+            certificates || [],
+            withdrawals || [],
+            validityIntervalStart || "0",
+        );
+    }
+
     /**
      * @returns True if the connection has been opened and successfully established.
      */

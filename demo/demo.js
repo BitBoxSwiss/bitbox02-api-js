@@ -10,6 +10,10 @@ function toHex(data) {
     return [...data].map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
+function fromHex(hexString) {
+    return new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+}
+
 function reset() {
     document.getElementById("demo").disabled = false;
     document.getElementById("pairing").style.display = "none";
@@ -363,4 +367,80 @@ document.getElementById("btcSignMultisig").addEventListener("click", async () =>
             alert(err.Message);
         }
     }
+});
+
+const cardanoGetAddress = async (display) => device.api.cardanoAddress(
+  constants.messages.CardanoNetwork.CardanoMainnet,
+  {
+    pkhSkh: {
+      keypathPayment: getKeypathFromString("m/1852'/1815'/0'/0/0"),
+      keypathStake: getKeypathFromString("m/1852'/1815'/0'/2/0"),
+    },
+  }, display);
+
+cardanoAddr.addEventListener("click", async () => {
+    try {
+        const address = await cardanoGetAddress(false);
+        cardanoAddr.textContent = "Confirm the following address on the BitBox:\n" + address;
+        cardanoAddr.className = "btn btn-warning";
+
+        await cardanoGetAddress(true);
+        cardanoAddr.textContent = "Success!:\n" + address;
+        cardanoAddr.className = "btn btn-success";
+    } catch (e) {
+        cardanoAddr.textContent = JSON.stringify(e);
+        cardanoAddr.className = "btn btn-danger";
+    }
+});
+
+cardanoPub.addEventListener("click", async () => {
+    const xpubs = await device.api.cardanoXPubs([
+        getKeypathFromString("m/1852'/1815'/0'"),
+        getKeypathFromString("m/1852'/1815'/1'"),
+    ]);
+    alert("Account #0\n" + toHex(xpubs[0]));
+    alert("Account #1\n" + toHex(xpubs[1]));
+});
+
+
+cardanoSign.addEventListener("click", async () => {
+    const ttl = "41115811";
+    const fee = "170499";
+    const validityIntervalStart = "41110811";
+    const response = await device.api.cardanoSignTransaction({
+        network: constants.messages.CardanoNetwork.CardanoMainnet,
+        inputs: [{
+            "keypath": getKeypathFromString("m/1852'/1815'/0'/0/0"),
+            "prevOutHash": fromHex("59864ee73ca5d91098a32b3ce9811bac1996dcbaefa6b6247dcaafb5779c2538"),
+            "prevOutIndex": 0,
+        }],
+        outputs: [{
+            "encodedAddress": "addr1q9qfllpxg2vu4lq6rnpel4pvpp5xnv3kvvgtxk6k6wp4ff89xrhu8jnu3p33vnctc9eklee5dtykzyag5penc6dcmakqsqqgpt",
+            "value": "1000000",
+        },
+         {
+             "encodedAddress": await cardanoGetAddress(false),
+             "value": "4829501",
+             "scriptConfig": {
+                 "pkhSkh": {
+                     "keypathPayment": getKeypathFromString("m/1852'/1815'/0'/0/0"),
+                     "keypathStake": getKeypathFromString("m/1852'/1815'/0'/2/0"),
+                 },
+             },
+        }],
+        fee,
+        ttl,
+        certificates: [
+            { "stakeRegistration": {
+                "keypath": getKeypathFromString("m/1852'/1815'/0'/2/0"),
+            } },
+            { "stakeDelegation": {
+                "keypath": getKeypathFromString("m/1852'/1815'/0'/2/0"),
+                "poolKeyhash": fromHex("92229dcf782ce8a82050fdeecb9334cc4d906c6eb66cdbdcea86fb5f"),
+            } }
+        ],
+        withdrawals: [{ "keypath": getKeypathFromString("m/1852'/1815'/0'/2/0"), value: "12345" }],
+        validityIntervalStart,
+    });
+    console.log("Sign response:", response);
 });

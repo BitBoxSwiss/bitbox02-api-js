@@ -109,6 +109,7 @@ func main() {
 				"BTCScriptConfig_SimpleType": messages.BTCScriptConfig_SimpleType_value,
 				"BTCOutputType":              messages.BTCOutputType_value,
 				"BTCXPubType":                messages.BTCPubRequest_XPubType_value,
+				"CardanoNetwork":             messages.CardanoNetwork_value,
 			},
 		},
 	})
