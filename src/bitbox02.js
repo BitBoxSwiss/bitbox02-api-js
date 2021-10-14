@@ -270,6 +270,12 @@ export class BitBox02API {
         }
     }
 
+    /**
+     * @return the firmware version.
+     */
+    version() {
+        return this.firmware().js.Version();
+    }
 
     // --- Bitcoin methods ---
 

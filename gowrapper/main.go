@@ -206,6 +206,10 @@ type jsDevice struct {
 	readChan chan<- []byte
 }
 
+func (device *jsDevice) Version() string {
+	return device.device.Version().String()
+}
+
 func (device *jsDevice) OnRead(msg []byte) {
 	device.readChan <- msg
 }
