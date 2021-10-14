@@ -99,35 +99,43 @@ type cardanoCertificate struct {
 }
 
 func (cert *cardanoCertificate) toCertificate() (*messages.CardanoSignTransactionRequest_Certificate, error) {
+	var result *messages.CardanoSignTransactionRequest_Certificate
+	count := 0
 	if cert.StakeRegistration.Object != js.Undefined {
-		return &messages.CardanoSignTransactionRequest_Certificate{
+		count += 1
+		result = &messages.CardanoSignTransactionRequest_Certificate{
 			Cert: &messages.CardanoSignTransactionRequest_Certificate_StakeRegistration{
 				StakeRegistration: &messages.Keypath{
 					Keypath: cert.StakeRegistration.Keypath,
 				},
 			},
-		}, nil
+		}
 	}
 	if cert.StakeDeregistration.Object != js.Undefined {
-		return &messages.CardanoSignTransactionRequest_Certificate{
+		count += 1
+		result = &messages.CardanoSignTransactionRequest_Certificate{
 			Cert: &messages.CardanoSignTransactionRequest_Certificate_StakeDeregistration{
 				StakeDeregistration: &messages.Keypath{
 					Keypath: cert.StakeDeregistration.Keypath,
 				},
 			},
-		}, nil
+		}
 	}
 	if cert.StakeDelegation.Object != js.Undefined {
-		return &messages.CardanoSignTransactionRequest_Certificate{
+		count += 1
+		result = &messages.CardanoSignTransactionRequest_Certificate{
 			Cert: &messages.CardanoSignTransactionRequest_Certificate_StakeDelegation_{
 				StakeDelegation: &messages.CardanoSignTransactionRequest_Certificate_StakeDelegation{
 					Keypath:     cert.StakeDelegation.Keypath,
 					PoolKeyhash: cert.StakeDelegation.PoolKeyhash,
 				},
 			},
-		}, nil
+		}
 	}
-	return nil, errors.New("One of stakeRegistration, stakeDeregistration, stakeDelegation must be set")
+	if count != 1 {
+		return nil, errors.New("One of stakeRegistration, stakeDeregistration, stakeDelegation must be set")
+	}
+	return result, nil
 }
 
 type cardanoWithdrawal struct {
