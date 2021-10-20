@@ -1,3 +1,8 @@
+# 0.10.0
+- Added Cardano support
+- bitbox02-api-go: updated to 93df9155c1466ae51fbe1ce88a963a9ee709070f
+- add function to retrieve the firmware version
+
 # 0.9.0
 
 - Updated Go to version 1.16

@@ -109,6 +109,7 @@ func main() {
 				"BTCScriptConfig_SimpleType": messages.BTCScriptConfig_SimpleType_value,
 				"BTCOutputType":              messages.BTCOutputType_value,
 				"BTCXPubType":                messages.BTCPubRequest_XPubType_value,
+				"CardanoNetwork":             messages.CardanoNetwork_value,
 			},
 		},
 	})
@@ -203,6 +204,10 @@ func newJSDeviceWebHID(onWrite func([]byte)) *js.Object {
 type jsDevice struct {
 	device   *firmware.Device
 	readChan chan<- []byte
+}
+
+func (device *jsDevice) Version() string {
+	return device.device.Version().String()
 }
 
 func (device *jsDevice) OnRead(msg []byte) {

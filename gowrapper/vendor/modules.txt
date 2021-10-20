@@ -2,7 +2,7 @@
 github.com/btcsuite/btcd/btcec
 # github.com/btcsuite/btcutil v0.0.0-20190425235716-9e5f4b9a998d
 github.com/btcsuite/btcutil/base58
-# github.com/digitalbitbox/bitbox02-api-go v0.0.0-20210705085842-e35fbafc3b98
+# github.com/digitalbitbox/bitbox02-api-go v0.0.0-20211020142653-789ea0568c68 => /home/marko/go/src/github.com/digitalbitbox/bitbox02-api-go
 ## explicit
 github.com/digitalbitbox/bitbox02-api-go/api/common
 github.com/digitalbitbox/bitbox02-api-go/api/firmware
@@ -30,3 +30,4 @@ golang.org/x/crypto/internal/subtle
 golang.org/x/crypto/poly1305
 # golang.org/x/sys v0.0.0-20201119102817-f84b799fce68
 golang.org/x/sys/cpu
+# github.com/digitalbitbox/bitbox02-api-go => /home/marko/go/src/github.com/digitalbitbox/bitbox02-api-go

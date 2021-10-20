@@ -1,5 +1,15 @@
 ![BitBox02 Logo](assets/bitbox02.png)
 
+# General
+
+## version
+
+Get the firmware version as a string, e.g. `"9.7.0"`.
+
+```javascript
+const version = BitBox02.version();
+```
+
 # BitBox02 API - Methods
 
 The [BitBox02 JavaScript library](https://github.com/digitalbitbox/bitbox02-api-js) supports the methods documented below.
