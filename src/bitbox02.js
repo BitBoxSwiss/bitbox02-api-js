@@ -14,7 +14,7 @@
 
 // For full method documentation see: https://github.com/digitalbitbox/bitbox02-api-js/blob/master/docs/methods.md
 
-import './bitbox02-api-go.js';
+import { bitbox02 } from './bitbox02-api-go.js';
 
 import { getKeypathFromString, getCoinFromKeypath, getCoinFromChainId } from './utils.js';
 

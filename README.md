@@ -81,7 +81,7 @@ All available methods are documented in [`docs/methods.md`](docs/methods.md).
 ## Sample integration
 
 This is a sample BitBox02Wallet class integration for connecting to the BitBox02 device using the BitBoxBridge and this JS API.
-See [`demo/demo.js`](demo/demo.js) for a fully functional sandbox implementation.
+See [`sandbox/src/index.js`](sandbox/src/index.js) for a fully functional sandbox implementation.
 
 ```javascript
 import {
@@ -191,5 +191,6 @@ $ make dockercompile
 To simply run the demo sandbox implementation, run the following command and visit <http://localhost:8000>.
 
 ```sh
+$ make builddemo
 $ make servedemo
 ```

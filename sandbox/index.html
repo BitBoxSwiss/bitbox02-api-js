@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>BitBox02 JS demo sandbox</title>
+        <link rel="stylesheet" href="assets/styles/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <link rel="stylesheet" href="assets/styles/demo.css">
+        <script src="main.js"></script>
+    </head>
+    <body class="gray-gradient">
+        <div id="nav" class="nav-container">
+            <nav class="nav-content col-xs-12">
+                <div class="content-width flex flex-between flex-items-center">
+                    <h1 class="m-bottom-none">BitBox<span class="lab-light">Sandbox</span></h1>
+                </div>
+            </nav>
+        </div>
+        <div id="intro" class="introContainer container-sm">
+            <h4 class="lab-light m-bottom-medium text-center">
+                This demo either requires a browser that supports
+                <a href="https://developer.mozilla.org/en-US/docs/Web/API/HID">WebHID</a> (Chrome)
+                or the <a href="https://github.com/digitalbitbox/bitbox-bridge/releases/">BitBoxBridge</a> must
+                be installed and running, and one <strong>BitBox</strong>02 plugged in.
+            </h4>
+            <button id="demo" class="primary" autocomplete="off">Run demo</button>
+        </div>
+        <div id="pairing" style="display:none;" class="introContainer">
+            <h3>Verify pairing</h3>
+            <div id="pairingCode" class="pairingCode m-bottom-medium"></div>
+            <button id="pairingOK" class="primary" disabled>OK</button>
+            <br/><br/>
+        </div>
+        <div id="initialized" style="display:none;" class="flex flex-column content-width">
+            <div class="buttonsContainer">
+                <h3>Bitcoin</h3>
+                <div class="m-bottom-large">
+                    <h5>Single-sig</h5>
+                    <button class="primary" id="btcAddressSimple" autocomplete="off">Show address</button>
+                    <button class="primary" id="btcSignSimple" autocomplete="off">Sign tx</button>
+                    <button class="primary" id="btcSignMsg" autocomplete="off">Sign message</button>
+                </div>
+                <div class="m-bottom-large">
+                    <h5>Multi-sig</h5>
+                    <div class="m-bottom-xsmall">
+                        <details>
+                            <summary>Info</summary>
+                            <div class="panel">
+                                <ul>
+                                    <li>Before every tx sign or address verify, the multisig account should be setup on the device if it hasn't: makeExampleMultisigAccount in demo.js is doing that.</li>
+                                    <li>The demo currently does a 1-of-2 multisig demo of the device xpub and an arbitrary other one Zpub75oAskzNv1fFuPc4ue6dVyZETFdroU4Bw2NNTL6Yz8WzLx3athVwRKmuMoSmwqXFL5jw5ZEdbinsW5TSEiHQTFUuZg4Pk2v2mma1ERpHWgq</li>
+                                </ul>
+                            </div>
+                        </details>
+                    </div>
+                    <button class="primary" id="btcAddressMultisig" autocomplete="off">Show address</button>
+                    <button class="primary" id="btcSignMultisig" autocomplete="off">Sign tx</button>
+                </div>
+            </div>
+            <div class="buttonsContainer">
+                <h3>Ethereum</h3>
+                <button class="primary bb02-multi" disabled id="ethAddr" autocomplete="off">Show address</button>
+                <button class="primary bb02-multi" disabled id="ethPub" autocomplete="off">Get xpub</button>
+                <button class="primary bb02-multi" disabled id="ethSign" autocomplete="off">Sign tx</button>
+                <button class="primary bb02-multi" disabled id="ethSignMsg" autocomplete="off">Sign message</button>
+            </div>
+            <div class="buttonsContainer">
+                <h3>Cardano</h3>
+                <button class="primary bb02-multi" disabled id="cardanoAddr" autocomplete="off">Show address</button>
+                <button class="primary bb02-multi" disabled id="cardanoPub" autocomplete="off">Get xpubs</button>
+                <button class="primary bb02-multi" disabled id="cardanoSign" autocomplete="off">Sign tx</button>
+            </div>
+
+            <div class="m-top-xxlarge">
+                <button class="secondary" id="close" autocomplete="off">Disconnect</button>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,3 +1,7 @@
+# 0.11.0
+- Converted bitbox02-api-js to a CommonJS module for better integration with webpack
+- Converted the demo to a webpack project
+
 # 0.10.0
 - Added Cardano support
 - bitbox02-api-go: updated to 93df9155c1466ae51fbe1ce88a963a9ee709070f
