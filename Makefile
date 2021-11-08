@@ -3,6 +3,6 @@ dockercompile:
 servedemo:
 	cd demo && python3 -m http.server 8000
 compile:
-	cd gowrapper && /gopherjs/gopherjs build -m -o /bitbox02-api-js/src/bitbox02-api-go.js
+	cd gowrapper && gopherjs build -o ../src/bitbox02-api-go.js
 dockerinit:
 	docker build --no-cache --pull --force-rm -t bitbox02-api-js .
