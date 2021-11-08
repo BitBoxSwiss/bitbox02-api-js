@@ -75,7 +75,7 @@ func (communication *bb02Communication) Close() {
 }
 
 func main() {
-	js.Global.Set("bitbox02", map[string]interface{}{
+	js.Module.Get("exports").Set("bitbox02", map[string]interface{}{
 		"IsErrorAbort": func(jsError map[string]interface{}) bool {
 			return firmware.IsErrorAbort(fromJSError(jsError))
 		},
