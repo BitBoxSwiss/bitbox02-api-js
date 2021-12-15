@@ -7,5 +7,3 @@ require (
 	github.com/flynn/noise v1.0.0
 	github.com/gopherjs/gopherjs v0.0.0-20200217142428-fce0ec30dd00
 )
-
-replace github.com/digitalbitbox/bitbox02-api-go => /home/marko/go/src/github.com/digitalbitbox/bitbox02-api-go
