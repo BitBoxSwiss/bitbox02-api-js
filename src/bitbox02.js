@@ -150,11 +150,11 @@ export class BitBox02API {
     }
 
     connectWebHID = async (onMessageCb) => {
-        const vendorID = 0x03eb;
-        const productID = 0x2403;
+        const vendorId = 0x03eb;
+        const productId = 0x2403;
         let device;
         try {
-            const devices = await navigator.hid.requestDevice({filters: [{vendorID, productID}]});
+            const devices = await navigator.hid.requestDevice({filters: [{vendorId, productId}]});
             const d = devices[0];
             // Filter out other products that might be in the list presented by the Browser.
             if (d.productName.includes('BitBox02')) {
