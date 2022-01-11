@@ -349,7 +349,7 @@ func (output *btcSignOutputRequest) toOutput() (*messages.BTCSignOutputRequest, 
 		Ours:    output.Ours,
 		Type:    output.Type,
 		Value:   int.Uint64(),
-		Hash:    output.Hash,
+		Payload: output.Hash,
 		Keypath: output.Keypath,
 	}, nil
 }
