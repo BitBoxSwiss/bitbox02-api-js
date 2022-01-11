@@ -82,8 +82,8 @@ Sign a Bitcoin single-sig transaction.
  *                {
  *                  "ours": false,
  *                  "type": constants.messages.BTCOutputType.P2WSH // e.g. constants.messages.BTCOutputType.P2PKH,
- *                  // pubkey or script hash. 20 bytes for P2PKH, P2SH, P2WPKH. 32 bytes for P2WSH.
- *                  "hash": new Uint8Array(20) | new Uint8Array(32)
+ *                  // pubkey or script hash or pubkey. 20 bytes for P2PKH, P2SH, P2WPKH. 32 bytes for P2WSH, P2TR.
+ *                  "payload": new Uint8Array(20) | new Uint8Array(32)
  *                  "value": string, // satoshis as a decimal string,
  *                }
  * @param version Transaction version, usually 1 or 2.

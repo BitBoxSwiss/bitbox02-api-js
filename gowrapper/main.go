@@ -336,7 +336,7 @@ type btcSignOutputRequest struct {
 	Ours    bool                   `js:"ours"`
 	Type    messages.BTCOutputType `js:"type"`
 	Value   string                 `js:"value"`
-	Hash    []byte                 `js:"hash"`
+	Payload []byte                 `js:"payload"`
 	Keypath []uint32               `js:"keypath"`
 }
 
@@ -349,7 +349,7 @@ func (output *btcSignOutputRequest) toOutput() (*messages.BTCSignOutputRequest, 
 		Ours:    output.Ours,
 		Type:    output.Type,
 		Value:   int.Uint64(),
-		Payload: output.Hash,
+		Payload: output.Payload,
 		Keypath: output.Keypath,
 	}, nil
 }
