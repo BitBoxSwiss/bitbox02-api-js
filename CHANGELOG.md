@@ -1,3 +1,6 @@
+# 0.12.0
+- Breaking change: rename `hash` to `payload` in Bitcoin outputs in `btcSignSimple()` and `btcSignMultisig()`
+
 # 0.11.0
 - Converted bitbox02-api-js to a CommonJS module for better integration with webpack
 - Converted the demo to a webpack project

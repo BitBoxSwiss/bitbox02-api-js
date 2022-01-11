@@ -90,7 +90,7 @@ const setOutputDefaults = outputs =>  {
     for (let i = 0; i < outputs.length; i++) {
         outputs[i] = Object.assign({
             type: 0,
-            hash: new Uint8Array(0),
+            payload: new Uint8Array(0),
             keypath: [],
         }, outputs[i]);
     }
@@ -336,8 +336,8 @@ export class BitBox02API {
      *        {
      *            "ours": false,
      *            "type": constants.messages.BTCOutputType.P2WSH // e.g. constants.messages.BTCOutputType.P2PKH,
-     *            // pubkey or script hash. 20 bytes for P2PKH, P2SH, P2WPKH. 32 bytes for P2WSH.
-     *            "hash": new Uint8Array(20) | new Uint8Array(32)
+     *            // pubkey or script hash or pubkey. 20 bytes for P2PKH, P2SH, P2WPKH. 32 bytes for P2WSH, P2TR.
+     *            "payload": new Uint8Array(20) | new Uint8Array(32)
      *            "value": string, // satoshis as a decimal string,
      *        }
      * @param version Transaction version, usually 1 or 2.

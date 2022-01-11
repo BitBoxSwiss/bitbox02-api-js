@@ -242,7 +242,7 @@ window.addEventListener("load", function() {
             {
                 "ours": false,
                 "type": constants.messages.BTCOutputType.P2WSH,
-                "hash": new Uint8Array(32).fill(49), // arbitrary constant
+                "payload": new Uint8Array(32).fill(49), // arbitrary constant
                 "value": "20000000", // satoshis as a decimal string,
             },
         ];
