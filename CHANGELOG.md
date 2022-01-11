@@ -1,4 +1,5 @@
 # 0.12.0
+- Fix WebHID vendor/product filters, fixing WebHID access in Chrome 97+
 - Breaking change: rename `hash` to `payload` in Bitcoin outputs in `btcSignSimple()` and `btcSignMultisig()`
 
 # 0.11.0
