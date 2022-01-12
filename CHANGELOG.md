@@ -1,5 +1,6 @@
 # 0.13.0
 - Cardano: allow a TTL value of "0" (before "0" would be treated the same as undefined/missing).
+- Cardano: add support for tokens
 
 # 0.12.0
 - Fix WebHID vendor/product filters, fixing WebHID access in Chrome 97+

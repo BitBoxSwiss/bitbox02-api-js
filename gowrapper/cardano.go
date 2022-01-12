@@ -62,11 +62,24 @@ func (addr *cardanoScriptConfig) toScriptConfig() *messages.CardanoScriptConfig 
 	return nil
 }
 
+type cardanoToken struct {
+	*js.Object
+	AssetName []byte `js:"assetName"`
+	Value     string `js:"value"`
+}
+
+type cardanoAssetGroup struct {
+	*js.Object
+	PolicyID []byte          `js:"policyId"`
+	Tokens   []*cardanoToken `js:"tokens"`
+}
+
 type cardanoOutput struct {
 	*js.Object
 	EncodedAddress string               `js:"encodedAddress"`
 	Value          string               `js:"value"`
 	ScriptConfig   *cardanoScriptConfig `js:"scriptConfig"`
+	AssetGroups    []cardanoAssetGroup  `js:"assetGroups"`
 }
 
 func (output *cardanoOutput) toOutput() (*messages.CardanoSignTransactionRequest_Output, error) {
@@ -74,10 +87,29 @@ func (output *cardanoOutput) toOutput() (*messages.CardanoSignTransactionRequest
 	if !ok {
 		return nil, errors.New("expected decimal string as value")
 	}
+	assetGroups := make([]*messages.CardanoSignTransactionRequest_AssetGroup, len(output.AssetGroups))
+	for i, assetGroup := range output.AssetGroups {
+		tokens := make([]*messages.CardanoSignTransactionRequest_AssetGroup_Token, len(assetGroup.Tokens))
+		for j, token := range assetGroup.Tokens {
+			tokenValue, ok := new(big.Int).SetString(token.Value, 10)
+			if !ok {
+				return nil, errors.New("expected decimal string as value")
+			}
+			tokens[j] = &messages.CardanoSignTransactionRequest_AssetGroup_Token{
+				AssetName: token.AssetName,
+				Value:     tokenValue.Uint64(),
+			}
+		}
+		assetGroups[i] = &messages.CardanoSignTransactionRequest_AssetGroup{
+			PolicyId: assetGroup.PolicyID,
+			Tokens:   tokens,
+		}
+	}
 	return &messages.CardanoSignTransactionRequest_Output{
 		EncodedAddress: output.EncodedAddress,
 		Value:          value.Uint64(),
 		ScriptConfig:   output.ScriptConfig.toScriptConfig(),
+		AssetGroups:    assetGroups,
 	}, nil
 }
 
