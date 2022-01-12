@@ -635,6 +635,13 @@ export class BitBox02API {
         withdrawals,
         validityIntervalStart,
     }) {
+        // Workaround for gopherjs: all fields must be set for Go to be able to parse the structure,
+        // even though some fields are optional.
+        for (let i = 0; i < outputs.length; i++) {
+            outputs[i] = Object.assign({
+                assetGroups: [],
+            }, outputs[i]);
+        }
         // Undefined (missing) ttl is passed as ttl=0 AND allowZeroTTL=false.
         const allowZeroTTL = !!ttl;
         return await this.firmware().js.AsyncCardanoSignTransaction(

@@ -418,19 +418,31 @@ window.addEventListener("load", function() {
                 "prevOutHash": fromHex("59864ee73ca5d91098a32b3ce9811bac1996dcbaefa6b6247dcaafb5779c2538"),
                 "prevOutIndex": 0,
             }],
-            outputs: [{
-                "encodedAddress": "addr1q9qfllpxg2vu4lq6rnpel4pvpp5xnv3kvvgtxk6k6wp4ff89xrhu8jnu3p33vnctc9eklee5dtykzyag5penc6dcmakqsqqgpt",
-                "value": "1000000",
-            },
-                      {
-                          "encodedAddress": await cardanoGetAddress(false),
-                          "value": "4829501",
-                          "scriptConfig": {
-                              "pkhSkh": {
-                                  "keypathPayment": getKeypathFromString("m/1852'/1815'/0'/0/0"),
-                                  "keypathStake": getKeypathFromString("m/1852'/1815'/0'/2/0"),
-                              },
-                          },
+            outputs: [
+                {
+                    "encodedAddress": "addr1q9qfllpxg2vu4lq6rnpel4pvpp5xnv3kvvgtxk6k6wp4ff89xrhu8jnu3p33vnctc9eklee5dtykzyag5penc6dcmakqsqqgpt",
+                    "value": "1000000",
+                    "assetGroups": [
+                        {
+                            "policyId": fromHex("1e349c9bdea19fd6c147626a5260bc44b71635f398b67c59881df209"),
+                            "tokens": [
+                                {
+                                    "assetName": fromHex("504154415445"),
+                                    "value": "1",
+                                },
+                            ],
+                        },
+                    ],
+                },
+                {
+                    "encodedAddress": await cardanoGetAddress(false),
+                    "value": "4829501",
+                    "scriptConfig": {
+                        "pkhSkh": {
+                            "keypathPayment": getKeypathFromString("m/1852'/1815'/0'/0/0"),
+                            "keypathStake": getKeypathFromString("m/1852'/1815'/0'/2/0"),
+                        },
+                    },
             }],
             fee,
             ttl,
