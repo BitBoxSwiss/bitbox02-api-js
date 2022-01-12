@@ -233,6 +233,7 @@ func (device *jsDevice) AsyncCardanoSignTransaction(
 	certificates []*cardanoCertificate,
 	withdrawals []*cardanoWithdrawal,
 	validityIntervalStart string,
+	allowZeroTTL bool,
 ) {
 	go func() {
 		ttlInt, ok := new(big.Int).SetString(ttl, 10)
@@ -267,6 +268,7 @@ func (device *jsDevice) AsyncCardanoSignTransaction(
 				Certificates:          convertedCertificates,
 				Withdrawals:           convertedWithdrawals,
 				ValidityIntervalStart: validityIntervalStartInt.Uint64(),
+				AllowZeroTtl:          allowZeroTTL,
 			},
 		)
 		if err != nil {

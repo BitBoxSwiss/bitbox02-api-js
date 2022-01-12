@@ -619,7 +619,7 @@ export class BitBox02API {
      * inputs: list of input objects. See see gowrapper/cardano.go:cardanoInput
      * outputs: list of output objects. See see gowrapper/cardano.go:cardanoOutput
      * fee: transaction fee (decimal string)
-     * ttl: transaction time-to-live (decimal string)
+     * ttl: undefined or transaction time-to-live (non-empty decimal string)
      * certificates: list of certificate objects. see gowrapper/cardano.go:cardanoCertificate
      * withdrawals: list of withdrawal objects. see gowrapper/cardano.go:cardanoWithdrawal
      * validityIntervalstart: transaction validity interval start (decimal string)
@@ -635,6 +635,8 @@ export class BitBox02API {
         withdrawals,
         validityIntervalStart,
     }) {
+        // Undefined (missing) ttl is passed as ttl=0 AND allowZeroTTL=false.
+        const allowZeroTTL = !!ttl;
         return await this.firmware().js.AsyncCardanoSignTransaction(
             network,
             inputs || [],
@@ -644,6 +646,7 @@ export class BitBox02API {
             certificates || [],
             withdrawals || [],
             validityIntervalStart || "0",
+            allowZeroTTL,
         );
     }
 
