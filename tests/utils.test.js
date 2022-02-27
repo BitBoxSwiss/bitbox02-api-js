@@ -1,4 +1,4 @@
-import { getCoinFromKeypath, getKeypathFromString, getCoinFromChainId } from '../src/utils.js';
+import { getChainIDFromKeypath, getKeypathFromString, getCoinFromChainId } from '../src/utils.js';
 import { constants, HARDENED } from '../src/index.js';
 
 /**
@@ -85,26 +85,24 @@ test("Keypath array must have the matching number of levels", () => {
  * Test getCoinFromKeypath
  */
 test("m/44'/60'/0'/0 returns mainnet coin ETHCoin.ETH", () => {
-    expect(getCoinFromKeypath([44 + HARDENED, 60 + HARDENED, 0 + HARDENED, 0])).toBe(constants.messages.ETHCoin.ETH);
+    expect(getChainIDFromKeypath([44 + HARDENED, 60 + HARDENED, 0 + HARDENED, 0])).toBe(1);
 })
 
 test("m/44'/1'/0'/0 returns testnet coin ETHCoin.RopstenETH", () => {
-    expect(getCoinFromKeypath([44 + HARDENED, 1 + HARDENED, 0 + HARDENED, 0])).toBe(constants.messages.ETHCoin.RopstenETH);
+    expect(getChainIDFromKeypath([44 + HARDENED, 1 + HARDENED, 0 + HARDENED, 0])).toBe(3);
 })
 
 test("Account other than 44' throws 'Invalid keypath'", () => {
-    expect(() => getCoinFromKeypath([45 + HARDENED, 60 + HARDENED, 0 + HARDENED, 0])).toThrow('Invalid keypath');
-    expect(() => getCoinFromKeypath([44, 60 + HARDENED, 0 + HARDENED, 0])).toThrow('Invalid keypath');
+    expect(() => getChainIDFromKeypath([45 + HARDENED, 60 + HARDENED, 0 + HARDENED, 0])).toThrow('Invalid keypath');
+    expect(() => getChainIDFromKeypath([44, 60 + HARDENED, 0 + HARDENED, 0])).toThrow('Invalid keypath');
 })
 
 test("Wallet other than 60' or 1' throws 'Invalid keypath'", () => {
-    expect(() => getCoinFromKeypath([44 + HARDENED, 0 + HARDENED, 0 + HARDENED, 0])).toThrow('Invalid keypath');
-    expect(() => getCoinFromKeypath([44 + HARDENED, 60, 0 + HARDENED, 0])).toThrow('Invalid keypath');
-    expect(() => getCoinFromKeypath([44 + HARDENED, 1, 0 + HARDENED, 0])).toThrow('Invalid keypath');
+    expect(() => getChainIDFromKeypath([44 + HARDENED, 0 + HARDENED, 0 + HARDENED, 0])).toThrow('Invalid keypath');
+    expect(() => getChainIDFromKeypath([44 + HARDENED, 60, 0 + HARDENED, 0])).toThrow('Invalid keypath');
+    expect(() => getChainIDFromKeypath([44 + HARDENED, 1, 0 + HARDENED, 0])).toThrow('Invalid keypath');
 })
 
 test("keypath as string throws, must be Uint8Array", () => {
-    expect(() => getCoinFromKeypath("m/44'/60'/0'/0")).toThrow();
+    expect(() => getChainIDFromKeypath("m/44'/60'/0'/0")).toThrow();
 })
-
-

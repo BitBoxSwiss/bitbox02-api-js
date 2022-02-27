@@ -1,3 +1,8 @@
+# 0.14.0
+
+- Allow large ETH chain IDs
+- bitbox02-api-go: updated to 67b3f707055c6b49ca9491b6c0d9003ad0f0cc10
+
 # 0.13.0
 - Cardano: allow a TTL value of "0" (before "0" would be treated the same as undefined/missing).
 - Cardano: add support for tokens

@@ -54,17 +54,17 @@ export const getKeypathFromString = keypathString => {
  * @param keypathArray keypath as an array of ints e.g. [2147483692, 2147483649, 2147483648, 0]
  * FIXME: This is a slight hack until the device is provided with the network by the integrating service
  * The only noticeable consequence is that when using the Rinkeby testnet, the user would see 'Ropsten' on device
- * @returns ETHCoin.ETH for mainnet ([44, 60]) and ETHCoin.RopstenETH for testnets ([44, 1])
+ * @returns 1 for mainnet ([44, 60]) and 3 for testnets ([44, 1])
  */
-export const getCoinFromKeypath = keypathArray => {
+export const getChainIDFromKeypath = keypathArray => {
     if (keypathArray[0] !== 44 + HARDENED) {
         throw new Error('Invalid keypath');
     }
     switch(keypathArray[1]) {
         case 60 + HARDENED:
-            return constants.messages.ETHCoin.ETH;
+            return 1;
         case 1 + HARDENED:
-            return constants.messages.ETHCoin.RopstenETH;
+            return 3;
         default:
             throw new Error('Invalid keypath');
     }
