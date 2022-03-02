@@ -545,14 +545,14 @@ func (device *jsDevice) AsyncBTCSignMessage(
 
 func (device *jsDevice) AsyncETHPub(
 	done func(string, *jsError),
-	coin messages.ETHCoin,
+	chainID uint64,
 	keypath []uint32,
 	outputType messages.ETHPubRequest_OutputType,
 	display bool,
 	contractAddress []byte,
 ) {
 	go func() {
-		address, err := device.device.ETHPub(coin, keypath, outputType, display, contractAddress)
+		address, err := device.device.ETHPub(chainID, keypath, outputType, display, contractAddress)
 		done(address, toJSError(err))
 	}()
 }
@@ -560,7 +560,7 @@ func (device *jsDevice) AsyncETHPub(
 // AsyncETHSign is like the wrapped ETHSign, but the *big.Int fields are passed as decimal strings.
 func (device *jsDevice) AsyncETHSign(
 	done func([]byte, *jsError),
-	coin messages.ETHCoin,
+	chainID uint64,
 	keypath []uint32,
 	nonce []byte,
 	gasPrice []byte,
@@ -569,7 +569,6 @@ func (device *jsDevice) AsyncETHSign(
 	value []byte,
 	data []byte) {
 	go func() {
-
 		// TODO: Get rid of these intermediate conversions and pass bytes to firmware directly through ETHSign
 		gasPriceBigInt := new(big.Int).SetBytes(gasPrice)
 		valueBigInt := new(big.Int).SetBytes(value)
@@ -584,18 +583,18 @@ func (device *jsDevice) AsyncETHSign(
 		recipient20 := [20]byte{}
 		copy(recipient20[:], recipient)
 		sig, err := device.device.ETHSign(
-			coin, keypath, nonceInt, gasPriceBigInt, gasLimitInt, recipient20, valueBigInt, data)
+			chainID, keypath, nonceInt, gasPriceBigInt, gasLimitInt, recipient20, valueBigInt, data)
 		done(sig, toJSError(err))
 	}()
 }
 
 func (device *jsDevice) AsyncETHSignMessage(
 	done func([]byte, *jsError),
-	coin messages.ETHCoin,
+	chainID uint64,
 	keypath []uint32,
 	msg []byte) {
 	go func() {
-		sig, err := device.device.ETHSignMessage(coin, keypath, msg)
+		sig, err := device.device.ETHSignMessage(chainID, keypath, msg)
 		done(sig, toJSError(err))
 	}()
 }

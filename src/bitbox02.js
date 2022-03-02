@@ -16,7 +16,7 @@
 
 import { bitbox02 } from './bitbox02-api-go.js';
 
-import { getKeypathFromString, getCoinFromKeypath, getCoinFromChainId } from './utils.js';
+import { getKeypathFromString, getChainIDFromKeypath, getCoinFromChainId } from './utils.js';
 
 const api = bitbox02;
 export const constants = bitbox02.constants;
@@ -467,9 +467,9 @@ export class BitBox02API {
      */
     async ethGetRootPubKey(keypath) {
         const keypathArray = getKeypathFromString(keypath);
-        const coin = getCoinFromKeypath(keypathArray);
+        const chainID = getChainIDFromKeypath(keypathArray);
         const xpub = await this.firmware().js.AsyncETHPub(
-            coin,
+            chainID,
             keypathArray,
             constants.messages.ETHPubRequest_OutputType.XPUB,
             false,
@@ -487,11 +487,11 @@ export class BitBox02API {
      */
     async ethDisplayAddress(keypath, display = true) {
         const keypathArray = getKeypathFromString(keypath);
-        // FIXME: see def of `getCoinFromPath()`, since we use the same keypath for Ropsten and Rinkeby,
+        // FIXME: see def of `getChainIDFromKeypath()`, since we use the same keypath for Ropsten and Rinkeby,
         // the title for Rinkeby addresses will show 'Ropsten' instead
-        const coin = getCoinFromKeypath(keypathArray);
+        const chainID = getChainIDFromKeypath(keypathArray);
         return this.firmware().js.AsyncETHPub(
-            coin,
+            chainID,
             keypathArray,
             constants.messages.ETHPubRequest_OutputType.ADDRESS,
             display,
@@ -515,13 +515,13 @@ export class BitBox02API {
      *     {
      *         r: Uint8Array(32)
      *         s: Uint8Array(32)
-     *         v: Uint8Array(1)
+     *         v: Uint8Array(N)
      *     }
      */
     async ethSignTransaction(signingData) {
         try {
             const sig = await this.fw.js.AsyncETHSign(
-                getCoinFromChainId(signingData.chainId),
+                signingData.chainId,
                 getKeypathFromString(signingData.keypath),
                 signingData.tx.nonce,
                 signingData.tx.gasPrice,
@@ -531,10 +531,17 @@ export class BitBox02API {
                 signingData.tx.data
             );
             const vOffset = signingData.chainId * 2 + 8;
+            const v = sig[64] + 27 + vOffset;
+            // Convert `v` to big-endian Uint8Array.
+            const vBuf = new ArrayBuffer(8);
+            new DataView(vBuf).setBigUint64(0, BigInt(v));
+            let vArr = new Uint8Array(vBuf);
+            // Remove leading zeroes.
+            vArr = vArr.subarray(vArr.findIndex(el => el != 0));
             const result = {
                 r: sig.slice(0, 0 + 32),
                 s: sig.slice(0 + 32, 0 + 32 + 32),
-                v: [sig[64] + 27 + vOffset],
+                v: vArr,
             };
             return result;
         } catch (err) {
@@ -565,7 +572,7 @@ export class BitBox02API {
         try {
             const keypath = getKeypathFromString(msgData.keypath);
             const sig = await this.firmware().js.AsyncETHSignMessage(
-                getCoinFromKeypath(keypath),
+                getChainIDFromKeypath(keypath),
                 keypath,
                 msgData.message
             );
