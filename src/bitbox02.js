@@ -592,6 +592,44 @@ export class BitBox02API {
         }
     }
 
+    /**
+     * Sign an Ethereum typed data message (EIP-712) on the device.
+     *
+     * @param msgData is an object including the keypath and the message as bytes
+     *     {
+     *         chainId    // int, e.g. 1 for mainnet.
+     *         keypath    // string, e.g. m/44'/60'/0'/0/0 for the first mainnet account
+     *         message    // EIP-712 typed data object, see sandbox for example.
+     *     }
+     * @returns Object; result with the signature bytes r, s, v
+     *     {
+     *         r: Uint8Array(32)
+     *         s: Uint8Array(32)
+     *         v: Uint8Array(1)
+     *     }
+     */
+    async ethSignTypedMessage(msgData) {
+        try {
+            const sig = await this.firmware().js.AsyncETHSignTypedMessage(
+                msgData.chainId,
+                getKeypathFromString(msgData.keypath),
+                JSON.stringify(msgData.message),
+            );
+            const result = {
+                r: sig.slice(0, 0 + 32),
+                s: sig.slice(0 + 32, 0 + 32 + 32),
+                v: sig.slice(64), // offset of 27 is already included by bitbox02-api-go
+            };
+            return result;
+        } catch (err) {
+            if (api.IsErrorAbort(err)) {
+                throw new Error('User abort');
+            } else {
+                throw new Error(err.Message);
+            }
+        }
+    }
+
     // --- End Ethereum methods ---
 
     // --- Cardano methods ---
