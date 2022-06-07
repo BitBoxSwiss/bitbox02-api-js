@@ -598,3 +598,14 @@ func (device *jsDevice) AsyncETHSignMessage(
 		done(sig, toJSError(err))
 	}()
 }
+
+func (device *jsDevice) AsyncETHSignTypedMessage(
+	done func([]byte, *jsError),
+	chainID uint64,
+	keypath []uint32,
+	msg string) {
+	go func() {
+		sig, err := device.device.ETHSignTypedMessage(chainID, keypath, []byte(msg))
+		done(sig, toJSError(err))
+	}()
+}

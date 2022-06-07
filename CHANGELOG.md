@@ -1,3 +1,6 @@
+# 0.15.0
+- Add `ethSignTypedMessage()` (EIP-712 support)
+
 # 0.14.0
 
 - Allow large ETH chain IDs
