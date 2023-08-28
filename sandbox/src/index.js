@@ -177,7 +177,8 @@ window.addEventListener("load", function() {
                         ],
                         "Person": [
                             { "name": "name", "type": "string" },
-                            { "name": "wallet", "type": "address" }
+                            { "name": "wallet", "type": "address" },
+                            { "name": "age", "type": "uint8" }
                         ],
                         "Mail": [
                             { "name": "from", "type": "Person" },
@@ -196,11 +197,13 @@ window.addEventListener("load", function() {
                     "message": {
                         "from": {
                             "name": "Cow",
-                            "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+                            "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+                            "age": 20
                         },
                         "to": {
                             "name": "Bob",
-                            "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+                            "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
+                            "age": "0x1e"
                         },
                         "contents": "Hello, Bob!",
                         "attachments": [{ "contents": "attachment1" }, { "contents": "attachment2" }]

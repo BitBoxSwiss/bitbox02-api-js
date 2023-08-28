@@ -405,6 +405,7 @@ func (device *jsDevice) AsyncBTCSignSimple(
 				Outputs:  theOutputs,
 				Locktime: locktime,
 			},
+			messages.BTCSignInitRequest_DEFAULT,
 		)
 		done(signatures, toJSError(err))
 	}()
@@ -515,6 +516,7 @@ func (device *jsDevice) AsyncBTCSignMultisig(
 				Outputs:  theOutputs,
 				Locktime: locktime,
 			},
+			messages.BTCSignInitRequest_DEFAULT,
 		)
 		done(signatures, toJSError(err))
 	}()

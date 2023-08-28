@@ -389,7 +389,7 @@ func encodeValue(typ *messages.ETHSignTypedMessageRequest_MemberType, value inte
 	switch typ.Type {
 	case messages.ETHSignTypedMessageRequest_BYTES:
 		v := value.(string)
-		if len(v) >= 2 && v[:2] == "0x" {
+		if strings.HasPrefix(v, "0x") || strings.HasPrefix(v, "0X") {
 			return hex.DecodeString(v[2:])
 		}
 		return []byte(v), nil
@@ -397,9 +397,16 @@ func encodeValue(typ *messages.ETHSignTypedMessageRequest_MemberType, value inte
 		bigint := new(big.Int)
 		switch v := value.(type) {
 		case string:
-			_, ok := bigint.SetString(v, 10)
-			if !ok {
-				return nil, errp.Newf("couldn't parse uint: %s", v)
+			if strings.HasPrefix(v, "0x") || strings.HasPrefix(v, "0X") {
+				_, ok := bigint.SetString(v[2:], 16)
+				if !ok {
+					return nil, errp.Newf("couldn't parse uint: %s", v)
+				}
+			} else {
+				_, ok := bigint.SetString(v, 10)
+				if !ok {
+					return nil, errp.Newf("couldn't parse uint: %s", v)
+				}
 			}
 		case float64:
 			v64 := uint64(v)
@@ -417,7 +424,7 @@ func encodeValue(typ *messages.ETHSignTypedMessageRequest_MemberType, value inte
 		case string:
 			_, ok := bigint.SetString(v, 10)
 			if !ok {
-				return nil, errp.Newf("couldn't parse uint: %s", v)
+				return nil, errp.Newf("couldn't parse int: %s", v)
 			}
 		case float64:
 			v64 := int64(v)
