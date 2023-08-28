@@ -1,3 +1,7 @@
+# 0.15.1
+- `ethSignTypedMessage()` now accepts hex strings (e.g. `"0x01"`) for the `uint` types
+- re-enable minification of the bitbox02-api-go.js
+
 # 0.15.0
 - Add `ethSignTypedMessage()` (EIP-712 support)
 

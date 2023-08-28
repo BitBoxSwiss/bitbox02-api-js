@@ -15,12 +15,14 @@
 package firmware
 
 import (
+	"container/ring"
+	"fmt"
 	"time"
 
 	"github.com/digitalbitbox/bitbox02-api-go/api/firmware/messages"
 	"github.com/digitalbitbox/bitbox02-api-go/util/errp"
 	"github.com/digitalbitbox/bitbox02-api-go/util/semver"
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -53,7 +55,11 @@ const (
 func (device *Device) rawQueryV7(msg []byte) ([]byte, error) {
 	var status string
 	var payload []byte
+	// saving 11 timestamps to show the last 10 intervals.
+	lastQueryTimes := ring.New(11)
 	for {
+		lastQueryTimes.Value = time.Now()
+		lastQueryTimes = lastQueryTimes.Next()
 		responseBytes, err := device.communication.Query(append([]byte(hwwReqNew), msg...))
 		if err != nil {
 			return nil, err
@@ -76,9 +82,27 @@ func (device *Device) rawQueryV7(msg []byte) ([]byte, error) {
 		case hwwRspBusy:
 			return nil, errp.New("unexpected hwwRspBusy response")
 		case hwwRspNack:
+			lastQueryTimes = lastQueryTimes.Prev()
+			if lastQueryTimes.Prev().Value == nil {
+				device.log.Debug("unexpected NACK response in first loop iteration")
+			} else {
+				logStr := "unexpected NACK response; last successful retry query intervals (newest first) were: "
+				for i := 0; i < lastQueryTimes.Len()-1; i++ {
+					if lastQueryTimes.Value == nil || lastQueryTimes.Prev().Value == nil {
+						break
+					}
+					t := lastQueryTimes.Value
+					lastQueryTimes = lastQueryTimes.Prev()
+					tPrev := lastQueryTimes.Value
+					logStr += fmt.Sprintf("%v; ", t.(time.Time).Sub(tPrev.(time.Time)))
+				}
+				device.log.Debug(logStr)
+			}
 			return nil, errp.New("unexpected NACK response")
 		case hwwRspNotready:
 			time.Sleep(200 * time.Millisecond)
+			lastQueryTimes.Value = time.Now()
+			lastQueryTimes = lastQueryTimes.Next()
 			responseBytes, err := device.communication.Query([]byte(hwwReqRetry))
 			if err != nil {
 				return nil, err

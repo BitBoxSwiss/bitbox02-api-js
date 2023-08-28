@@ -177,7 +177,8 @@ window.addEventListener("load", function() {
                         ],
                         "Person": [
                             { "name": "name", "type": "string" },
-                            { "name": "wallet", "type": "address" }
+                            { "name": "wallet", "type": "address" },
+                            { "name": "age", "type": "uint8" }
                         ],
                         "Mail": [
                             { "name": "from", "type": "Person" },
@@ -196,11 +197,13 @@ window.addEventListener("load", function() {
                     "message": {
                         "from": {
                             "name": "Cow",
-                            "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+                            "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+                            "age": 20
                         },
                         "to": {
                             "name": "Bob",
-                            "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+                            "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
+                            "age": "0x1e"
                         },
                         "contents": "Hello, Bob!",
                         "attachments": [{ "contents": "attachment1" }, { "contents": "attachment2" }]
@@ -244,7 +247,7 @@ window.addEventListener("load", function() {
         const inputs = [
             {
                 "prevOutHash": Uint8Array.from([0xc5, 0x8b, 0x7e, 0x3f, 0x12, 0x00, 0xe0, 0xc0, 0xec, 0x9a, 0x5e, 0x81, 0xe9, 0x25, 0xba, 0xfa, 0xce, 0x2c, 0xc1, 0xd4, 0x71, 0x55, 0x14, 0xf2, 0xd8, 0x20, 0x5b, 0xe2, 0x50, 0x8b, 0x48, 0xee]),
-                "prevOutIndex": 1,
+                "prevOutIndex": 0,
                 "prevOutValue": "60005000", // satoshis as a decimal string
                 "sequence": 0xFFFFFFFF,
                 "keypath": keypathAccount.concat([0, 0]),
@@ -267,7 +270,7 @@ window.addEventListener("load", function() {
             },
             {
                 "prevOutHash": Uint8Array.from([0xc5, 0x8b, 0x7e, 0x3f, 0x12, 0x00, 0xe0, 0xc0, 0xec, 0x9a, 0x5e, 0x81, 0xe9, 0x25, 0xba, 0xfa, 0xce, 0x2c, 0xc1, 0xd4, 0x71, 0x55, 0x14, 0xf2, 0xd8, 0x20, 0x5b, 0xe2, 0x50, 0x8b, 0x48, 0xee]),
-                "prevOutIndex": 1,
+                "prevOutIndex": 0,
                 "prevOutValue": "60005000", // satoshis as a decimal string
                 "sequence": 0xFFFFFFFF,
                 "keypath": keypathAccount.concat([0, 1]),

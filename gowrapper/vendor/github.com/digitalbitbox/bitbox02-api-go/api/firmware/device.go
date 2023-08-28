@@ -27,8 +27,6 @@ import (
 	"github.com/flynn/noise"
 )
 
-//go:generate sh -c "protoc --proto_path=messages/ --go_out='import_path=messages,paths=source_relative:messages' messages/*.proto"
-
 var (
 	lowestSupportedFirmwareVersion                   = semver.NewSemVer(9, 0, 0)
 	lowestSupportedFirmwareVersionBTCOnly            = semver.NewSemVer(9, 0, 0)
@@ -119,10 +117,12 @@ type DeviceInfo struct {
 
 // NewDevice creates a new instance of Device.
 // version:
-//   Can be given if known at the time of instantiation, e.g. by parsing the USB HID product string.
-//   It must be provided if the version could be less than 4.3.0.
-//   If nil, the version will be queried from the device using the OP_INFO api endpoint. Do this
-//   when you are sure the firmware version is bigger or equal to 4.3.0.
+//
+//	Can be given if known at the time of instantiation, e.g. by parsing the USB HID product string.
+//	It must be provided if the version could be less than 4.3.0.
+//	If nil, the version will be queried from the device using the OP_INFO api endpoint. Do this
+//	when you are sure the firmware version is bigger or equal to 4.3.0.
+//
 // product: same deal as with the version, after 4.3.0 it can be inferred by OP_INFO.
 func NewDevice(
 	version *semver.SemVer,
@@ -334,10 +334,12 @@ func (device *Device) Product() common.Product {
 }
 
 // SupportsETH returns true if ETH is supported by the device api.
-// coinCode is eth/teth/reth or eth-erc20-xyz, ...
 func (device *Device) SupportsETH(chainID uint64) bool {
 	if *device.product != common.ProductBitBox02Multi {
 		return false
+	}
+	if device.version.AtLeast(semver.NewSemVer(9, 10, 0)) {
+		return true
 	}
 	if device.version.AtLeast(semver.NewSemVer(4, 0, 0)) {
 		switch chainID {

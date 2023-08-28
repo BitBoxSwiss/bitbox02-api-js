@@ -20,11 +20,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/btcsuite/btcutil/base58"
+	"github.com/btcsuite/btcd/btcutil/base58"
 	"github.com/digitalbitbox/bitbox02-api-go/api/firmware/messages"
 	"github.com/digitalbitbox/bitbox02-api-go/util/errp"
 	"github.com/digitalbitbox/bitbox02-api-go/util/semver"
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 const multisigNameMaxLen = 30
@@ -246,6 +246,7 @@ func (device *Device) BTCSign(
 	coin messages.BTCCoin,
 	scriptConfigs []*messages.BTCScriptConfigWithKeypath,
 	tx *BTCTx,
+	formatUnit messages.BTCSignInitRequest_FormatUnit,
 ) ([][]byte, error) {
 	if !device.version.AtLeast(semver.NewSemVer(9, 10, 0)) {
 		for _, sc := range scriptConfigs {
@@ -267,6 +268,7 @@ func (device *Device) BTCSign(
 				NumInputs:     uint32(len(tx.Inputs)),
 				NumOutputs:    uint32(len(tx.Outputs)),
 				Locktime:      tx.Locktime,
+				FormatUnit:    formatUnit,
 			}}})
 	if err != nil {
 		return nil, err
@@ -277,7 +279,7 @@ func (device *Device) BTCSign(
 		switch next.Type {
 		case messages.BTCSignNextResponse_INPUT:
 			inputIndex := next.Index
-			input := *tx.Inputs[inputIndex].Input
+			input := tx.Inputs[inputIndex].Input
 
 			inputIsSchnorr := isTaproot(scriptConfigs[input.ScriptConfigIndex])
 
@@ -297,7 +299,7 @@ func (device *Device) BTCSign(
 			}
 			next, err = device.queryBtcSign(&messages.Request{
 				Request: &messages.Request_BtcSignInput{
-					BtcSignInput: &input,
+					BtcSignInput: input,
 				}})
 			if err != nil {
 				return nil, err
