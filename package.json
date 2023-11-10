@@ -8,7 +8,8 @@
     "lib/bitbox02-api-go.js.map",
     "lib/bitbox02.js",
     "lib/index.js",
-    "lib/utils.js"
+    "lib/utils.js",
+    "index.d.ts"
   ],
   "scripts": {
     "test": "jest",
@@ -33,6 +34,7 @@
     "url": "https://github.com/digitalbitbox/bitbox02-api-js/issues"
   },
   "homepage": "https://github.com/digitalbitbox/bitbox02-api-js#readme",
+  "types": "./index.d.ts",
   "devDependencies": {
     "@babel/cli": "^7.14.8",
     "@babel/core": "^7.15.0",
